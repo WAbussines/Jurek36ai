@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>jurek36AI Chatbot</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Custom scrollbar for better appearance */
+    #chat::-webkit-scrollbar {
+      width: 8px;
+    }
+    #chat::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    #chat::-webkit-scrollbar-thumb {
+      background: #888;
+      border-radius: 10px;
+    }
+    #chat::-webkit-scrollbar-thumb:hover {
+      background: #555;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+  <div class="w-full max-w-lg bg-white shadow-xl rounded-2xl flex flex-col overflow-hidden h-[90vh] max-h-[700px]">
+    <header class="bg-gradient-to-r from-blue-500 to-indigo-600 p-6">
+      <h1 class="text-white text-2xl font-bold text-center">jurek36AI Chatbot</h1>
+    </header>
+    <main id="chat" class="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50"></main>
+    <footer class="p-4 bg-white border-t flex">
+      <input id="message" type="text" placeholder="Napisz wiadomość..." 
+             class="flex-1 px-4 py-2 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:bg-gray-100 disabled:cursor-not-allowed" />
+      <button id="send" class="px-4 py-2 bg-blue-500 text-white rounded-r-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed">
+        Wyślij
+      </button>
+    </footer>
+  </div>
+
+  <script>
+    // !!! === BARDZO WAŻNE OSTRZEŻENIE BEZPIECZEŃSTWA === !!!
+    // PONIŻEJ MUSISZ WPROWADZIĆ SWÓJ KLUCZ API GOOGLE GEMINI.
+    // UMIESZCZANIE KLUCZA API BEZPOŚREDNIO W KODZIE KLIENTA (FRONTENDU)
+    // JEST BARDZO NIEBEZPIECZNE! KAZDY, KTO OTWORZY KONSOLĘ PRZEGLĄDARKI,
+    // BĘDZIE MÓGŁ ZOBACZYĆ I UKRAŚĆ TWÓJ KLUCZ.
+    // ZALECAM UŻYCIE TEGO ROZWIĄZANIA TYLKO DO TESTÓW/ROZWOJU LOKALNEGO.
+    // DLA APLIKACJI PRODUKCYJNYCH ZAWSZE UŻYWAJ BEZPIECZNEGO BACKENDU,
+    // KTÓRY BĘDZIE PRZECHOWYWAŁ KLUCZ API.
+    const GEMINI_API_KEY = 'AIzaSyChSd5TnsmPwLYZAQclq_al2WC4KVULWNg'; // <--- TUTAJ WPROWADŹ SWÓJ KLUCZ API GOOGLE GEMINI
+
+    const chat = document.getElementById('chat');
+    const messageInput = document.getElementById('message');
+    const sendBtn = document.getElementById('send');
+
+    let loadingMessageElement = null; // Referencja do elementu wskaźnika ładowania
+
+    // Funkcja do dodawania wiadomości do okna czatu
+    function appendMessage(text, sender) {
+      const wrapper = document.createElement('div');
+      wrapper.className = sender === 'user' 
+        ? 'text-right'
+        : 'text-left';
+
+      const bubble = document.createElement('div');
+      bubble.innerText = text;
+      bubble.className = sender === 'user'
+        ? 'inline-block bg-blue-500 text-white px-4 py-2 rounded-tl-lg rounded-bl-lg rounded-br-lg max-w-[80%]'
+        : 'inline-block bg-gray-200 text-gray-800 px-4 py-2 rounded-tr-lg rounded-br-lg rounded-bl-lg max-w-[80%]';
+      // Dodano max-w-[80%] aby zapobiec zbyt szerokim dymkom
+
+      wrapper.appendChild(bubble);
+      chat.appendChild(wrapper);
+      chat.scrollTop = chat.scrollHeight; // Przewiń do dołu
+      return bubble; // Zwróć utworzony element dymku
+    }
+
+    // Funkcja do dodawania tymczasowego wskaźnika ładowania
+    function appendLoadingIndicator() {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'text-left'; // Wyrównanie jak dla bota
+
+      const bubble = document.createElement('div');
+      bubble.innerText = 'jurek36AI pisze...';
+      bubble.className = 'inline-block bg-gray-200 text-gray-600 px-4 py-2 rounded-tr-lg rounded-br-lg rounded-bl-lg animate-pulse max-w-[80%]';
+
+      wrapper.appendChild(bubble);
+      chat.appendChild(wrapper);
+      chat.scrollTop = chat.scrollHeight;
+      loadingMessageElement = wrapper; // Przechowaj referencję do elementu wrapper dla łatwiejszego usunięcia
+    }
+
+    // Funkcja do usuwania wskaźnika ładowania
+    function removeLoadingIndicator() {
+      if (loadingMessageElement && loadingMessageElement.parentNode) {
+        loadingMessageElement.parentNode.removeChild(loadingMessageElement);
+        loadingMessageElement = null;
+      }
+    }
+
+    // Funkcja do obsługi wysyłania wiadomości
+    async function sendMessage(message) {
+      if (!message.trim()) return; // Nie wysyłaj pustych wiadomości
+
+      appendMessage(message, 'user');
+      messageInput.value = ''; // Wyczyść pole wprowadzania od razu
+
+      // Wyłącz pole wprowadzania i przycisk podczas oczekiwania na odpowiedź
+      sendBtn.disabled = true;
+      messageInput.disabled = true;
+
+      appendLoadingIndicator(); // Pokaż wskaźnik ładowania
+
+      try {
+        // *** WAŻNA ZMIANA TUTAJ: Używamy modelu gemini-1.5-flash ***
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            contents: [{
+              parts: [{
+                text: message
+              }]
+            }]
+            // Możesz dodać historyczny kontekst wiadomości tutaj, jeśli chcesz zachować pamięć rozmowy
+            // history: [
+            //   { role: 'user', parts: [{ text: 'Poprzednia wiadomość użytkownika' }] },
+            //   { role: 'model', parts: [{ text: 'Poprzednia odpowiedź bota' }] },
+            //   // ... dodaj więcej par wiadomości
+            // ],
+          })
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          let errorMessage = 'Błąd API Gemini.';
+          if (errorData.error && errorData.error.message) {
+            errorMessage += ` ${errorData.error.message}`;
+          } else if (res.status === 400) {
+             errorMessage = 'Błąd żądania (400). Upewnij się, że Twój klucz API i treść żądania są poprawne.';
+          } else if (res.status === 401) {
+            errorMessage = 'Błąd autoryzacji (401). Sprawdź swój klucz API Gemini.';
+          } else if (res.status === 429) {
+            errorMessage = 'Przekroczono limit zapytań (429). Spróbuj ponownie później.';
+          } else if (res.status >= 500) {
+            errorMessage = `Błąd serwera Gemini (HTTP ${res.status}). Spróbuj ponownie później.`;
+          } else {
+             errorMessage += ` Kod statusu: ${res.status}`;
+          }
+          throw new Error(errorMessage);
+        }
+
+        const data = await res.json();
+        // Odpowiedź z Gemini API jest nieco inna niż z OpenAI.
+        // Szukamy `candidates[0].content.parts[0].text`
+        const reply = data.candidates && data.candidates[0] && 
+                      data.candidates[0].content && data.candidates[0].content.parts && 
+                      data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+
+        if (!reply) {
+            throw new Error("Nie otrzymano odpowiedzi tekstowej od bota Gemini.");
+        }
+
+        removeLoadingIndicator(); // Usuń wskaźnik ładowania
+        appendMessage(reply, 'bot');
+
+      } catch (err) {
+        removeLoadingIndicator(); // Upewnij się, że wskaźnik ładowania jest usunięty nawet w przypadku błędu
+        console.error('Wystąpił błąd komunikacji z Gemini API:', err);
+        appendMessage(`Błąd: ${err.message || 'Wystąpił nieoczekiwany błąd komunikacji.'}`, 'bot');
+      } finally {
+        // Ponownie włącz pole wprowadzania i przycisk
+        sendBtn.disabled = false;
+        messageInput.disabled = false;
+        messageInput.focus(); // Ustaw fokus z powrotem na polu wprowadzania
+      }
+    }
+
+    // Nasłuchiwacze zdarzeń
+    sendBtn.addEventListener('click', () => sendMessage(messageInput.value));
+    messageInput.addEventListener('keyup', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage(messageInput.value);
+      }
+    });
+
+    // Ustaw fokus na polu wprowadzania po załadowaniu strony
+    messageInput.focus();
+  </script>
+</body>
+  </html>
