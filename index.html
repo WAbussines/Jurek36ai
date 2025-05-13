@@ -104,70 +104,15 @@
         background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
         border-top: 1px solid #e5e7eb; /* border-t border-gray-200 */
         display: flex;
-        flex-direction: column; /* Stack elements vertically */
-        gap: 0.5rem; /* Space between input row and file info */
     }
 
+    /* Input row styling */
+    /* Styl wiersza wprowadzania */
     .input-row {
         display: flex;
         align-items: center;
-        gap: 0.5rem; /* Space between elements */
+        gap: 0.5rem; /* Space between input and send button */
     }
-
-    /* File input and info styling */
-    /* Styl pola wyboru pliku i informacji o pliku */
-    .file-info {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        font-size: 0.875rem; /* text-sm */
-        color: #4b5563; /* gray-700 */
-        padding: 0.25rem 0;
-    }
-
-    .file-info-name {
-        flex-grow: 1;
-        margin-right: 0.5rem;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .file-clear-button {
-        background: none;
-        border: none;
-        color: #ef4444; /* red-500 */
-        cursor: pointer;
-        font-size: 1rem;
-        padding: 0;
-        margin-left: 0.5rem;
-    }
-
-    /* Hide the default file input */
-    .hidden-file-input {
-        display: none;
-    }
-
-    /* Custom file input button styling (Paperclip) */
-    /* Styl niestandardowego przycisku wyboru pliku (Spinacz) */
-    .custom-file-upload {
-        background-color: #60a5fa; /* blue-400 */
-        color: white;
-        padding: 0.5rem 0.75rem; /* py-2 px-3 */
-        border-radius: 0.5rem 0 0 0.5rem; /* Rounded left, square right */
-        cursor: pointer;
-        transition: background-color 0.2s ease-in-out;
-        font-size: 1.2rem; /* Larger size for the icon */
-        display: flex; /* Use flex to center the icon */
-        align-items: center;
-        justify-content: center;
-        line-height: 1; /* Adjust line height for centering */
-    }
-
-    .custom-file-upload:hover {
-        background-color: #3b82f6; /* blue-500 */
-    }
-
 
     /* Input styling */
     /* Styl pola wprowadzania */
@@ -175,10 +120,16 @@
         flex: 1;
         padding: 0.5rem 1rem; /* px-4 py-2 */
         border: 1px solid #d1d5db; /* border border-gray-300 */
-        border-radius: 0; /* Square corners on both sides */
+        border-radius: 0.5rem 0 0 0.5rem; /* Rounded left */
         outline: none;
         transition: border-color 0.2s ease-in-out, ring-color 0.2s ease-in-out;
     }
+     /* Restore rounded corner on the right for input */
+     .input-row .chat-input {
+        border-top-right-radius: 0.5rem; /* Restore rounded corner */
+        border-bottom-right-radius: 0.5rem; /* Restore rounded corner */
+    }
+
 
     .chat-input:focus {
         border-color: #60a5fa; /* focus:border-blue-500 */
@@ -196,11 +147,17 @@
         padding: 0.5rem 1rem; /* px-4 py-2 */
         background-color: #3b82f6; /* bg-blue-500 */
         color: white;
-        border-radius: 0 0.5rem 0.5rem 0; /* Square left, rounded right */
+        border-radius: 0.5rem; /* Fully rounded */
         transition: background-color 0.2s ease-in-out;
         border: none; /* Remove default button border */
         cursor: pointer;
     }
+     /* Remove rounded corner on the left for button next to input */
+    .input-row .chat-send-button {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
     .chat-send-button:hover {
         background-color: #2563eb; /* hover:bg-blue-600 */
     }
@@ -212,12 +169,16 @@
     /* Message bubble styling */
     /* Styl dymków wiadomości */
     .message-bubble {
-      display: inline-block;
+      display: inline-block; /* Makes the bubble width fit its content */
+      /* Sprawia, że szerokość dymka dopasowuje się do jego zawartości */
       padding: 0.5rem 1rem; /* px-4 py-2 */
       border-radius: 0.5rem; /* General rounded corners */
-      max-width: 80%;
-      word-wrap: break-word; /* Prevent long words from overflowing */
+      max-width: 80%; /* Prevents the bubble from being too wide */
+      /* Zapobiega zbyt dużej szerokości dymka */
+      word-wrap: break-word; /* Prevents long words from overflowing */
+      /* Zapobiega przepełnieniu przez długie słowa */
       white-space: pre-wrap; /* Respect newlines in plain text messages */
+      /* Zachowuje nowe wiersze w zwykłym tekście */
     }
 
     .message-bubble.user {
@@ -231,6 +192,19 @@
       color: #1f2937; /* gray-800 */
       border-top-left-radius: 0; /* Pointed corner */
     }
+
+     /* Style for images within message bubbles */
+    /* Style dla obrazów wewnątrz dymków wiadomości */
+    .message-bubble img {
+        max-width: 100%; /* Ensure images don't overflow the bubble */
+        /* Upewnij się, że obrazy nie wychodzą poza dymek */
+        height: auto;
+        border-radius: 0.5rem; /* Rounded corners for images */
+        /* Zaokrąglone rogi dla obrazów */
+        margin-top: 0.5rem; /* Space above the image */
+        /* Odstęp nad obrazem */
+    }
+
 
     /* Style for blocks of code generated by marked.js */
     /* Styl dla bloków kodu generowanych przez marked.js */
@@ -287,15 +261,24 @@
       margin-bottom: 0.5rem;
     }
 
-    /* Styling for attached image preview in user message */
-    /* Stylizacja podglądu załączonego obrazu w wiadomości użytkownika */
-    .message-bubble.user img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 0.5rem;
-        margin-top: 0.5rem; /* Space above the image if there's text */
+    /* Typing indicator animation */
+    /* Animacja wskaźnika pisania */
+    .typing-indicator span {
+        animation: blink 1s infinite;
     }
 
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes blink {
+        0%, 80%, 100% { opacity: 0; }
+        40% { opacity: 1; }
+    }
 
   </style>
 </head>
@@ -309,12 +292,6 @@
         </main>
       <footer class="chat-footer">
         <div class="input-row">
-            <label for="fileInput" class="custom-file-upload" title="Załącz plik (obraz)">
-                📎
-            </label>
-            <input type="file" id="fileInput" class="hidden-file-input" accept="image/*" />
-
-
             <input id="message" type="text" placeholder="Napisz wiadomość..."
                    class="chat-input" />
 
@@ -322,46 +299,32 @@
               Wyślij
             </button>
         </div>
-        <div id="fileInfo" class="file-info hidden">
-            <span id="fileName" class="file-info-name"></span>
-            <button id="clearFileBtn" class="file-clear-button">&times;</button>
-        </div>
       </footer>
     </div>
   </div>
 
   <script>
     // !!! === BARDZO WAŻNE OSTRZEŻENIE BEZPIECZEŃSTWA === !!!
-    // PONIŻEJ MUSISZ WPROWADZIĆ SWÓJ KLUCZ API GOOGLE GEMINI.
-    // UMIESZCZANIE KLUCZA API BEZPOŚREDNIO W KODZIE KLIENTA (FRONTENDU)
-    // JEST BARDZO NIEBEZPIECZNE! KAZDY, KTO OTWORZY KONSOLĘ PRZEGLĄDARKĘ,
-    // BĘDZIE MÓGŁ ZOBACZYĆ I UKRAŚĆ TWÓJ KLUCZ.
-    // ZALECAM UŻYCIE TEGO ROZWIĄZANIA TYLKO DO TESTÓW/ROZWOJU LOKALNEGO.
-    // DLA APLIKACJI PRODUKCYJNYCH ZAWSZE UŻYWAJ BEZPIECZNEGO BACKENDU,
-    // KTÓRY BĘDZIE PRZECHOWYWAŁ KLUCZ API I POŚREDNICZYŁ W KOMUNIKACJI.
-    const GEMINI_API_KEY = 'AIzaSyChSd5TnsmPwLYZAQclq_al2WC4KVULWNg'; // <--- TUTAJ WPROWADŹ SWÓJ KLUCZ API GOOGLE GEMINI
+    // TEN KOD FRONTENDOWY NIE ZAWIERA KLUCZA API.
+    // KOMUNIKUJE SIĘ Z BACKENDEM, KTÓRY BEZPIECZNIE PRZECHOWUJE KLUCZ API.
+    // Zapewnia to bezpieczeństwo klucza API.
 
     const chat = document.getElementById('chat');
     const messageInput = document.getElementById('message');
     const sendBtn = document.getElementById('send');
-    const fileInput = document.getElementById('fileInput'); // Reference to the file input
-    // Referencja do pola wyboru pliku
-    const fileInfo = document.getElementById('fileInfo'); // Area to display file info
-    // Obszar do wyświetlania informacji o pliku
-    const fileNameSpan = document.getElementById('fileName'); // Span for file name
-    // Span dla nazwy pliku
-    const clearFileBtn = document.getElementById('clearFileBtn'); // Button to clear file
-    // Przycisk do usunięcia wybranego pliku
-    const attachButtonLabel = document.querySelector('.custom-file-upload'); // Reference to the custom file upload label
-    // Referencja do niestandardowej etykiety przycisku wyboru pliku
-
 
     let loadingMessageElement = null; // Reference to the loading indicator element
     // Referencja do elementu wskaźnika ładowania
     let currentLanguage = 'pl'; // Default language
     // Domyślny język
-    let attachedFile = null; // Variable to store the attached file data (base64) and mime type
-    // Zmienna do przechowywania danych załączonego pliku (base64) i typu mime
+
+    // Key for localStorage
+    // Klucz dla localStorage
+    const CHAT_STORAGE_KEY = 'jurek36ai_chat_history';
+
+    // Store chat history for context
+    // Przechowuj historię czatu dla kontekstu
+    let chatHistory = [];
 
     // Marked.js configuration (optional but recommended for security and specific needs)
     // Konfiguracja Marked.js (opcjonalne, ale polecane dla bezpieczeństwa i specyficznych potrzeb)
@@ -389,47 +352,101 @@
     // Słownik tłumaczeń dla różnych elementów UI i komunikatów
     const translations = {
       'pl': {
-        systemMessage: 'Jesteś pomocnym asystentem, który mówi po polsku. Możesz przetwarzać tekst i obrazy. Gdy odpowiadasz, możesz używać formatowania Markdown takiego jak **pogrubienie**, *kursywa*, `kod inline` lub bloki kodu:\n```javascript\nconsole.log("Witaj!");\n```\n. Twój język jest polski.',
+        systemMessage: 'Jesteś pomocnym asystentem, który mówi po polsku. Gdy odpowiadasz, możesz używać formatowania Markdown takiego jak **pogrubienie**, *kursywa*, `kod inline` lub bloki kodu:\n```javascript\nconsole.log("Witaj!");\n```\nMożesz poprosić o wygenerowanie obrazu, używając komendy "/obraz [opis obrazu]". Pamiętaj, że to tylko symulacja generowania obrazu.',
         inputPlaceholder: 'Napisz wiadomość...',
         sendButtonText: 'Wyślij',
-        loadingText: 'jurek36AI pisze...',
+        loadingText: 'jurek36AI pisze...', // Updated text for typing indicator
+        // Zaktualizowany tekst dla wskaźnika pisania
         errorGeneric: 'Wystąpił nieoczekiwany błąd komunikacji.',
-        errorApi: 'Błąd API Gemini.',
-        errorApiRequest: 'Błąd żądania (400). Upewnij się, że Twój klucz API i treść żądania są poprawne.',
-        errorApiAuth: 'Błąd autoryzacji (401). Sprawdź swój klucz API Gemini.',
+        errorApi: 'Błąd API.', // More general error message
+        // Bardziej ogólny komunikat o błędzie
+        errorApiRequest: 'Błąd żądania (400). Upewnij się, że Twoje żądanie jest poprawne.',
+        errorApiAuth: 'Błąd autoryzacji (401). Sprawdź swój klucz API.',
         errorApiQuota: 'Przekroczono limit zapytań (429). Spróbuj ponownie później.',
-        errorApiServer: (status) => `Błąd serwera Gemini (HTTP ${status}). Spróbuj ponownie później.`,
-        errorNoReply: 'Nie otrzymano odpowiedzi tekstowej od bota Gemini.',
-        copyButtonText: 'Kopiuj', // Kept for potential future use, but not used
-        // Zachowane na wypadek przyszłego użycia, ale nieużywane
-        copiedButtonText: 'Skopiowano!', // Kept for potential future use, but not used
-        // Zachowane na wypadek przyszłego użycia, ale nieużywane
-        attachButtonText: '📎', // Paperclip icon for the attach button
-        // Ikona spinacza dla przycisku załączania
-        attachButtonTitle: 'Załącz plik (obraz)', // Tooltip text
-        // Tekst podpowiedzi (tooltip)
-        clearFileButtonText: '&times;' // Text for the clear file button
-        // Tekst dla przycisku usuwania pliku
+        errorApiServer: (status) => `Błąd serwera (${status}). Spróbuj ponownie później.`,
+        errorNoReply: 'Nie otrzymano odpowiedzi tekstowej od bota.',
+        imageSimulationMessage: (description) => `Wygenerowano symulację obrazu dla: "${description}". [Image of Symulacja obrazu dla: ${description}]` // Message for simulated image
+        // Wiadomość dla symulowanego obrazu
       },
       'en': {
-        systemMessage: 'You are a helpful assistant who speaks English. You can process text and images. When responding, you can use Markdown formatting like **bold**, *italics*, `inline code` or code blocks:\n```javascript\nconsole.log("Hello!");\n```\n. Your language is English.',
+        systemMessage: 'You are a helpful assistant who speaks English. When responding, you can use Markdown formatting like **bold**, *italics*, `inline code` or code blocks:\n```javascript\nconsole.log("Hello!");\n```\nYou can ask to generate an image using the command "/image [image description]". Note that this is just a simulated image generation.',
         inputPlaceholder: 'Write a message...',
         sendButtonText: 'Send',
-        loadingText: 'jurek36AI is typing...',
+        loadingText: 'jurek36AI is typing...', // Updated text for typing indicator
         errorGeneric: 'An unexpected communication error occurred.',
-        errorApi: 'Gemini API Error.',
-        errorApiRequest: 'Bad request (400). Ensure your API key and request body are correct.',
-        errorApiAuth: 'Authorization error (401). Check your Gemini API key.',
+        errorApi: 'API Error.',
+        errorApiRequest: 'Bad request (400). Ensure your request is correct.',
+        errorApiAuth: 'Authorization error (401). Check your API key.',
         errorApiQuota: 'Quota exceeded (429). Try again later.',
-        errorApiServer: (status) => `Gemini server error (HTTP ${status}). Please try again later.`,
-        errorNoReply: 'No text reply received from Gemini bot.',
-        copyButtonText: 'Copy', // Kept for potential future use, but not used
-        copiedButtonText: 'Copied!', // Kept for potential future use, but not used
-        attachButtonText: '📎', // Paperclip icon for the attach button
-        attachButtonTitle: 'Attach file (image)', // Tooltip text
-        clearFileButtonText: '&times;' // Text for the clear file button
+        errorApiServer: (status) => `Server error (${status}). Please try again later.`,
+        errorNoReply: 'No text reply received from the bot.',
+        imageSimulationMessage: (description) => `Generated image simulation for: "${description}". [Image of Image simulation for: ${description}]` // Message for simulated image
       }
     };
+
+     // Function to save chat history to localStorage
+    // Funkcja do zapisywania historii czatu w localStorage
+    function saveChatHistory() {
+        // Save the chatHistory array directly
+        // Zapisz bezpośrednio tablicę chatHistory
+        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatHistory));
+    }
+
+    // Function to load chat history from localStorage
+    // Funkcja do ładowania historii czatu z localStorage
+    function loadChatHistory() {
+        const savedHistory = localStorage.getItem(CHAT_STORAGE_KEY);
+        if (savedHistory) {
+            try {
+                const messages = JSON.parse(savedHistory);
+                // Clear current chat display
+                // Wyczyść obecny widok czatu
+                chat.innerHTML = '';
+                chatHistory = []; // Clear the history array before loading
+
+                messages.forEach(msg => {
+                     // Append messages to the display and rebuild chatHistory
+                     // Dodaj wiadomości do widoku i odbuduj chatHistory
+                    // For loaded messages, we need to check if it was a simulated image message
+                    // Dla załadowanych wiadomości, musimy sprawdzić, czy to była wiadomość z symulowanym obrazem
+                    let displayedContent = msg.content;
+                    let isSimulatedImage = false;
+
+                    // Check if the message content contains the simulated image placeholder
+                    // Sprawdź, czy treść wiadomości zawiera placeholder symulowanego obrazu
+                    const imagePlaceholderMatch = msg.content.match(/\/);
+                    if (imagePlaceholderMatch && msg.sender === 'assistant') { // Only check bot messages for image placeholder
+                        const description = imagePlaceholderMatch[1].replace('Symulacja obrazu dla: ', '').replace('Image simulation for: ', ''); // Extract description
+                         // Wypakuj opis
+                        const imageUrl = `https://placehold.co/300x200?text=${encodeURIComponent(description)}`;
+                        // Reconstruct the message to display the image
+                        // Odbuduj wiadomość, aby wyświetlić obraz
+                        displayedContent = msg.content.replace(imagePlaceholderMatch[0], `<br><img src="${imageUrl}" alt="Simulated image for: ${description}">`);
+                        isSimulatedImage = true;
+                    }
+
+
+                    const sanitizedContent = msg.sender === 'user' ? displayedContent : DOMPurify.sanitize(displayedContent); // Sanitize loaded HTML
+                    appendMessage(sanitizedContent, msg.sender, false); // Pass false for isNewMessage
+                    // Rebuild chatHistory array with original content for API calls (if needed later)
+                    // Odbuduj tablicę chatHistory z oryginalną treścią dla wywołań API (jeśli będzie potrzebne później)
+                     // For now, we store the original text content for text-based models
+                    // Na razie przechowujemy oryginalną treść tekstową dla modeli tekstowych
+                    chatHistory.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: msg.content });
+                });
+                 // Scroll to the bottom after loading history
+                // Przewiń do dołu po załadowaniu historii
+                chat.scrollTop = chat.scrollHeight;
+            } catch (e) {
+                console.error("Error loading chat history from localStorage:", e);
+                // Clear invalid history if loading fails
+                // Wyczyść nieprawidłową historię, jeśli ładowanie się nie powiedzie
+                localStorage.removeItem(CHAT_STORAGE_KEY);
+                chatHistory = []; // Ensure history array is empty
+            }
+        }
+    }
+
 
     // Function to apply language to UI elements
     // Funkcja do stosowania języka do elementów UI
@@ -438,9 +455,10 @@
       // Fallback na angielski
       messageInput.placeholder = langData.inputPlaceholder;
       sendBtn.innerText = langData.sendButtonText;
-      attachButtonLabel.innerText = langData.attachButtonText; // Set icon
-      attachButtonLabel.title = langData.attachButtonTitle; // Set tooltip
-      clearFileBtn.innerHTML = langData.clearFileButtonText; // Use innerHTML for &times;
+       // Update system message in translations based on current language
+      // Zaktualizuj wiadomość systemową w tłumaczeniach na podstawie obecnego języka
+      translations['pl'].systemMessage = 'Jesteś pomocnym asystentem, który mówi po polsku. Gdy odpowiadasz, możesz używać formatowania Markdown takiego jak **pogrubienie**, *kursywa*, `kod inline` lub bloki kodu:\n```javascript\nconsole.log("Witaj!");\n```\nMożesz poprosić o wygenerowanie obrazu, używając komendy "/obraz [opis obrazu]". Pamiętaj, że to tylko symulacja generowania obrazu.';
+      translations['en'].systemMessage = 'You are a helpful assistant who speaks English. When responding, you can use Markdown formatting like **bold**, *italics*, `inline code` or code blocks:\n```javascript\nconsole.log("Hello!");\n```\nYou can ask to generate an image using the command "/image [image description]". Note that this is just a simulated image generation.';
     }
 
     // Function to detect and set language based on user's IP (approximate)
@@ -463,56 +481,15 @@
         console.warn('Error detecting language from IP, defaulting to', currentLanguage, '. Error:', error);
       } finally {
         applyLanguageToUI();
+        loadChatHistory(); // Load history after setting language and UI
       }
     }
 
-    // Function to handle file selection
-    // Funkcja do obsługi wyboru pliku
-    function handleFileSelect(event) {
-        const file = event.target.files[0];
-        if (file) {
-            // Check if the file is an image
-            if (!file.type.startsWith('image/')) {
-                alert('Proszę wybrać plik obrazu.'); // Alert for non-image files
-                clearAttachedFile(); // Clear the input
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                // Store the base64 data and mime type
-                attachedFile = {
-                    data: e.target.result.split(',')[1], // Get base64 string after the comma
-                    mime_type: file.type
-                };
-                // Display file name and show the info area
-                fileNameSpan.innerText = file.name;
-                fileInfo.classList.remove('hidden');
-            };
-            reader.onerror = (e) => {
-                console.error("Error reading file:", e);
-                alert("Wystąpił błąd podczas odczytu pliku."); // Alert on read error
-                clearAttachedFile();
-            };
-            reader.readAsDataURL(file); // Read file as Data URL (base64)
-        } else {
-            clearAttachedFile(); // Clear if no file is selected
-        }
-    }
-
-    // Function to clear the attached file
-    // Funkcja do usunięcia załączonego pliku
-    function clearAttachedFile() {
-        attachedFile = null;
-        fileInput.value = ''; // Clear the file input
-        fileNameSpan.innerText = '';
-        fileInfo.classList.add('hidden'); // Hide the info area
-    }
-
-
     // Function to append messages to the chat window
     // Funkcja do dodawania wiadomości do okna czatu
-    function appendMessage(text, sender, imageData = null) {
+    // Added isNewMessage parameter to control saving
+    // Dodano parametr isNewMessage do kontrolowania zapisu
+    function appendMessage(text, sender, isNewMessage = true) {
       const langData = translations[currentLanguage] || translations['en'];
 
       const wrapper = document.createElement('div');
@@ -524,37 +501,47 @@
       // Add Tailwind classes and custom 'message-bubble' class
       // Dodajemy klasy Tailwind i niestandardową klasę 'message-bubble'
       bubble.className = (sender === 'user'
-        ? 'message-bubble user' // Use custom CSS classes
-        // Używamy niestandardowych klas CSS
-        : 'message-bubble bot');
+        ? 'inline-block bg-blue-500 text-white px-4 py-2 rounded-tl-lg rounded-bl-lg rounded-br-lg max-w-[80%]' // User bubble styles
+        // Style dymka użytkownika
+        : 'inline-block bg-gray-200 text-gray-800 px-4 py-2 rounded-tr-lg rounded-br-lg rounded-bl-lg max-w-[80%]') // Bot bubble styles
+        // Style dymka bota
+        + ' message-bubble'; // Add the common message-bubble class
 
       if (sender === 'bot') {
-        // Parse Markdown to HTML using marked.js
-        // Parsuj Markdown do HTML używając marked.js
-        let htmlContent = marked.parse(text);
+        // Bot messages can contain HTML (from Markdown or image simulation)
+        // Wiadomości bota mogą zawierać HTML (z Markdownu lub symulacji obrazu)
+        // HTML content is already sanitized before calling appendMessage for loaded history
+        // Treść HTML jest już sanityzowana przed wywołaniem appendMessage dla załadowanej historii
+        // For new bot messages, we need to parse Markdown and sanitize
+        // Dla nowych wiadomości bota, musimy sparsować Markdown i sanityzować
+        let htmlContent = isNewMessage ? marked.parse(text) : text; // If not new, assume it's already HTML/sanitized
+        // Jeśli nie jest nowa, zakładamy, że to już HTML/sanitized
 
-        // !!! Important for security: Sanitize HTML using DOMPurify !!!
-        // !!! Ważne dla bezpieczeństwa: Sanityzacja HTML za pomocą DOMPurify !!!
-        htmlContent = DOMPurify.sanitize(htmlContent, {
-          USE_PROFILES: { html: true }
-        });
+        if (isNewMessage) {
+             // !!! Important for security: Sanitize HTML using DOMPurify !!!
+            // !!! Ważne dla bezpieczeństwa: Sanityzacja HTML za pomocą DOMPurify !!!
+            htmlContent = DOMPurify.sanitize(htmlContent, {
+              USE_PROFILES: { html: true }
+            });
+             // Bold the word "tak" (case-insensitive, whole word) - apply only to new bot messages
+            // Pogrubienie słowa "tak" (bez rozróżniania wielkości liter, całe słowo) - zastosuj tylko do nowych wiadomości bota
+            htmlContent = htmlContent.replace(/\b(tak)\b/gi, '<strong>$1</strong>');
+        }
 
-        // Bold the word "tak" (case-insensitive, whole word)
-        // Pogrubienie słowa "tak" (bez rozróżniania wielkości liter, całe słowo)
-        htmlContent = htmlContent.replace(/\b(tak)\b/gi, '<strong>$1</strong>');
 
         bubble.innerHTML = htmlContent;
 
       } else { // sender === 'user'
-        let content = text;
-        if (imageData) {
-            // Display the image in the user's message bubble
-            // Wyświetl obraz w dymku wiadomości użytkownika
-            content += `<br><img src="data:${imageData.mime_type};base64,${imageData.data}" alt="Attached image">`;
-        }
-        // Parse Markdown for user message text if needed, but for simplicity, using innerHTML directly
-        // Można sparsować Markdown dla tekstu wiadomości użytkownika, jeśli potrzebne, ale dla prostoty, używamy innerHTML bezpośrednio
-         bubble.innerHTML = content; // Use innerHTML to render <br> and <img>
+         // Parse Markdown for user message text
+        // Parsuj Markdown dla tekstu wiadomości użytkownika
+        let htmlContent = marked.parse(text);
+         // Sanitize user input HTML just in case (though less critical if only text is expected)
+        // Sanityzuj HTML wprowadzony przez użytkownika na wszelki wypadek (choć mniej krytyczne, jeśli oczekiwany jest tylko tekst)
+        htmlContent = DOMPurify.sanitize(htmlContent, {
+             USE_PROFILES: { html: true }
+        });
+        bubble.innerHTML = htmlContent; // Use innerHTML to render Markdown
+        // Użyj innerHTML do renderowania Markdownu
       }
 
       wrapper.appendChild(bubble); // Add bubble to wrapper element
@@ -565,6 +552,16 @@
       // Scroll to the bottom when a new message is added
       // Przewiń do dołu, gdy dodana zostanie nowa wiadomość
       chat.scrollTop = chat.scrollHeight;
+
+      // Add message to history if it's a new message
+      // Dodaj wiadomość do historii, jeśli to nowa wiadomość
+      if (isNewMessage) {
+          // Store original text content for API request (or simulated command)
+          // Przechowuj oryginalną treść tekstową dla żądania API (lub symulowanej komendy)
+          chatHistory.push({ role: sender === 'user' ? 'user' : 'assistant', content: text });
+          saveChatHistory(); // Save history after adding a new message
+      }
+
       return bubble;
     }
 
@@ -576,7 +573,10 @@
       wrapper.className = 'text-left';
 
       const bubble = document.createElement('div');
-      bubble.innerText = langData.loadingText;
+      // Use spans for typing animation
+      // Użyj spanów dla animacji pisania
+      bubble.innerHTML = `<span class="typing-indicator">${langData.loadingText.split('').map(char => `<span>${char}</span>`).join('')}</span>`;
+
       bubble.className = 'inline-block bg-gray-200 text-gray-600 px-4 py-2 rounded-tr-lg rounded-br-lg rounded-bl-lg animate-pulse max-w-[80%]';
 
       wrapper.appendChild(bubble);
@@ -594,77 +594,101 @@
       }
     }
 
-    // Function to handle sending messages to the Gemini API
-    // Funkcja do obsługi wysyłania wiadomości do API Gemini
+    // Function to handle sending messages to the API or simulating image generation
+    // Funkcja do obsługi wysyłania wiadomości do API lub symulowania generowania obrazu
     async function sendMessage(message) {
-      // Don't send if message is empty and no file is attached
-      // Nie wysyłaj, jeśli wiadomość jest pusta i żaden plik nie jest załączony
-      if (!message.trim() && !attachedFile) return;
+      // Don't send if message is empty
+      // Nie wysyłaj, jeśli wiadomość jest pusta
+      if (!message.trim()) return;
 
-      // Append user message and image (if attached) to the chat
-      // Dodaj wiadomość użytkownika i obraz (jeśli załączony) do czatu
-      appendMessage(message, 'user', attachedFile);
+      const langData = translations[currentLanguage] || translations['en'];
+      const imageCommand = currentLanguage === 'pl' ? '/obraz ' : '/image ';
 
-      // Clear input and file after appending user message
-      // Wyczyść pole wprowadzania i plik po dodaniu wiadomości użytkownika
+      // Check if the message is an image generation command
+      // Sprawdź, czy wiadomość jest komendą generowania obrazu
+      if (message.toLowerCase().startsWith(imageCommand)) {
+          const description = message.substring(imageCommand.length).trim();
+          if (description) {
+              // Append user message (the command)
+              // Dodaj wiadomość użytkownika (komendę)
+              appendMessage(message, 'user');
+
+              // Simulate image generation
+              // Symuluj generowanie obrazu
+              const imageUrl = `https://placehold.co/300x200?text=${encodeURIComponent(description)}`;
+              const simulationMessageText = langData.imageSimulationMessage(description); // Get the original text message
+
+              // Append the simulated image message from the bot
+              // Dodaj wiadomość z symulowanym obrazem od bota
+              // We manually create the HTML for the image within the message for display
+              // Ręcznie tworzymy HTML dla obrazu wewnątrz wiadomości do wyświetlenia
+              const botReplyDisplayContent = `${simulationMessageText.split('[Image of')[0].trim()} <br><img src="${imageUrl}" alt="Simulated image for: ${description}">`;
+
+              // Append the bot's reply (including the image HTML for display)
+              // Dodaj odpowiedź bota (włączając HTML obrazu do wyświetlenia)
+              // Pass the *original text* to appendMessage so it gets added to history correctly
+              // Przekaż *oryginalny tekst* do appendMessage, aby został poprawnie dodany do historii
+              appendMessage(simulationMessageText, 'bot'); // This call handles adding to history and saving
+
+
+              // Clear input
+              // Wyczyść pole wprowadzania
+              messageInput.value = '';
+              messageInput.focus();
+
+          } else {
+              // If command is used without description
+              // Jeśli komenda użyta bez opisu
+              appendMessage(message, 'user');
+              appendMessage("Proszę podać opis obrazu po komendzie /obraz.", 'bot'); // Customizable error message
+              messageInput.value = '';
+              messageInput.focus();
+          }
+          return; // Stop here, don't call the API
+      }
+
+
+      // If not an image command, proceed with text generation via API
+      // Jeśli nie jest komendą obrazu, kontynuuj generowanie tekstu przez API
+      // Append user message to the chat display and history
+      // Dodaj wiadomość użytkownika do widoku czatu i historii
+      appendMessage(message, 'user'); // appendMessage now saves history
+
+      // Clear input after appending user message
+      // Wyczyść pole wprowadzania po dodaniu wiadomości użytkownika
       messageInput.value = '';
-      clearAttachedFile();
-
 
       sendBtn.disabled = true;
       messageInput.disabled = true;
-      fileInput.disabled = true; // Disable file input too
-      clearFileBtn.disabled = true; // Disable clear button
-
 
       appendLoadingIndicator();
 
-      const langData = translations[currentLanguage] || translations['en'];
+      // Endpoint Twojego backendu do obsługi czatu
+      // Your backend endpoint for chat handling
+      const backendEndpoint = '/chat'; // Użyj ścieżki względnej, jeśli frontend i backend są na tej samej domenie/porcie lub skonfiguruj pełny URL po wdrożeniu
 
       try {
-        // Using gemini-1.5-flash as requested
-        // Używamy gemini-1.5-flash zgodnie z żądaniem
-        const modelToUse = 'gemini-1.5-flash';
+        // Prepare messages array for the backend request, including history
+        // Przygotuj tablicę wiadomości dla żądania backendu, włączając historię
+        // The backend expects an array of message objects with role and content
+        // Backend oczekuje tablicy obiektów wiadomości z rolą i treścią
+        const messagesForBackend = chatHistory.map(msg => ({
+            role: msg.role,
+            content: msg.content
+        }));
 
-        // Prepare the parts array for the API request
-        // Przygotuj tablicę 'parts' dla żądania API
-        const parts = [];
-
-        // Add text part if message is not empty
-        // Dodaj część tekstową, jeśli wiadomość nie jest pusta
-        if (message.trim()) {
-            parts.push({
-                text: message
-            });
-        }
-
-        // Add image part if a file is attached
-        // Dodaj część obrazu, jeśli plik jest załączony
-        if (attachedFile) {
-            parts.push({
-                inline_data: {
-                    mime_type: attachedFile.mime_type,
-                    data: attachedFile.data
-                }
-            });
-        }
-
-
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelToUse}:generateContent?key=${GEMINI_API_KEY}`, {
+        const res = await fetch(backendEndpoint, {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            // Brak nagłówka Authorization z kluczem API OpenRouter tutaj!
+            // Klucz jest dodawany przez backend.
           },
           body: JSON.stringify({
-            contents: [{
-              parts: parts // Use the prepared parts array
-              // Użyj przygotowanej tablicy 'parts'
-            }],
-            system_instruction: {
-                parts: [{
-                    text: langData.systemMessage
-                }]
-            }
+            // Możesz wysłać nazwę modelu do backendu, jeśli backend ma obsługiwać różne modele
+            // You can send the model name to the backend if the backend should handle different models
+            model: 'nousresearch/deephermes-3-mistral-24b-preview:free', // Model name for the backend
+            messages: messagesForBackend // Send history to the backend
           })
         });
 
@@ -672,59 +696,57 @@
           const errorData = await res.json();
           let displayErrorMessage = langData.errorApi;
 
-          if (errorData.error && errorData.error.message) {
-            displayErrorMessage += ` ${errorData.error.message}`;
+          // More detailed error messages based on status code
+          // Bardziej szczegółowe komunikaty o błędach na podstawie kodu statusu
+          if (res.status === 400) {
+             displayErrorMessage = `${langData.errorApi}: ${errorData.error?.message || langData.errorApiRequest}`;
+          } else if (res.status === 401) {
+             displayErrorMessage = `${langData.errorApi}: ${langData.errorApiAuth}`;
+          } else if (res.status === 429) {
+             displayErrorMessage = `${langData.errorApi}: ${langData.errorApiQuota}`;
+          } else if (res.status >= 500) {
+             displayErrorMessage = langData.errorApiServer(res.status);
           } else {
-            if (res.status === 400) {
-               displayErrorMessage += `: ${langData.errorApiRequest}`;
-            } else if (res.status === 401) {
-               displayErrorMessage += `: ${langData.errorApiAuth}`;
-            } else if (res.status === 429) {
-               displayErrorMessage += `: ${langData.errorApiQuota}`;
-            } else if (res.status >= 500) {
-               displayErrorMessage = langData.errorApiServer(res.status);
-            } else {
-               displayErrorMessage += ` (Kod statusu: ${res.status})`;
-            }
+             displayErrorMessage = `${langData.errorApi}: ${errorData.error?.message || langData.errorGeneric} (Kod statusu: ${res.status})`;
           }
+
           throw new Error(displayErrorMessage);
         }
 
         const data = await res.json();
-        const reply = data.candidates && data.candidates[0] &&
-                      data.candidates[0].content && data.candidates[0].content.parts &&
-                      data.candidates[0].content.parts[0] && data.candidates[0].content.parts[0].text;
+        // Oczekujemy odpowiedzi w polu 'reply' z backendu
+        // Expecting the reply in the 'reply' field from the backend
+        const reply = data.reply;
+
 
         if (!reply) {
-             // Handle cases where the API might respond without text (e.g., just an image analysis)
-            // Obsłuż przypadki, gdy API może odpowiedzieć bez tekstu (np. tylko analiza obrazu)
-            if (data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) {
-                 // Try to find any part that might be displayable, or just log the response
-                // Spróbuj znaleźć dowolną część, którą można wyświetlić, lub po prostu zaloguj odpowiedź
-                console.warn("Gemini API returned content without a text part:", data);
-                // Optionally display a generic "Processed" message or similar
-                // Opcjonalnie wyświetl ogólny komunikat "Przetworzono" lub podobny
-                appendMessage("Bot processed the input.", 'bot'); // You can customize this message
-                // Możesz dostosować ten komunikat
-            } else {
-                 throw new Error(langData.errorNoReply);
-            }
+            console.warn("Backend returned no text reply:", data);
+            // Display a generic message if no text reply
+            // Wyświetl ogólny komunikat, jeśli brak odpowiedzi tekstowej
+            appendMessage(langData.errorNoReply, 'bot');
         } else {
              removeLoadingIndicator();
-             appendMessage(reply, 'bot');
+             appendMessage(reply, 'bot'); // appendMessage adds to history and saves
         }
 
 
       } catch (err) {
         removeLoadingIndicator();
-        console.error('Wystąpił błąd komunikacji z Gemini API:', err);
-        appendMessage(`${langData.errorApi}: ${err.message || langData.errorGeneric}`, 'bot');
+        console.error('Wystąpił błąd komunikacji z backendem:', err);
+        // Display the specific error message in the chat
+        // Wyświetl konkretny komunikat o błędzie w czacie
+        appendMessage(`Błąd: ${err.message || langData.errorGeneric}`, 'bot');
+         // If an error occurs, remove the last user message from history to avoid sending it again
+        // Jeśli wystąpi błąd, usuń ostatnią wiadomość użytkownika z historii, aby uniknąć ponownego wysłania
+        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
+            chatHistory.pop();
+            saveChatHistory(); // Save history after removing the message
+        }
       } finally {
-        sendBtn.disabled = false;
-        messageInput.disabled = false;
-        fileInput.disabled = false; // Re-enable file input
-        clearFileBtn.disabled = false; // Re-enable clear button
-        messageInput.focus();
+         // ... (przywracanie przycisków, fokus) ...
+         sendBtn.disabled = false;
+         messageInput.disabled = false;
+         messageInput.focus();
       }
     }
 
@@ -737,13 +759,9 @@
       }
     });
 
-    // Event listener for file input change
-    // Nasłuchiwacz zdarzeń dla zmiany w polu wyboru pliku
-    fileInput.addEventListener('change', handleFileSelect);
-
-    // Event listener for clear file button
-    // Nasłuchiwacz zdarzeń dla przycisku usuwania pliku
-    clearFileBtn.addEventListener('click', clearAttachedFile);
+    // Save chat history before the window is unloaded
+    // Zapisz historię czatu przed zamknięciem okna
+    window.addEventListener('beforeunload', saveChatHistory);
 
 
     // Set focus on the input field after page load
@@ -752,7 +770,7 @@
 
     // Detect and set language after page load
     // Wykryj i ustaw język po załadowaniu strony
-    window.onload = detectAndSetLanguage;
+    window.onload = detectAndSetLanguage; // detectAndSetLanguage now calls loadChatHistory
   </script>
 </body>
 </html>
