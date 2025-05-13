@@ -260,11 +260,13 @@
     // ZALECAM UŻYCIE TEGO ROZWIĄZANIA TYLKO DO TESTÓW/ROZWOJU LOKALNEGO.
     // DLA APLIKACJI PRODUKCYJNYCH ZAWSZE UŻYWAJ BEZPIECZNEGO BACKENDU,
     // KTÓRY BĘDZIE PRZECHOWYWAŁ KLUCZ API I POŚREDNICZYŁ W KOMUNIKACJI.
-    const OPENROUTER_API_KEY = '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'; // <--- TWÓJ KLUCZ API
+    const OPENROUTER_API_KEY = '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'; // <--- Zaktualizowany klucz API
+
 
     // === KONFIGURACJA WEBHOOKA DISCORD ===
     const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1371742303135207444/Z8u_qd8gzRufHFEbEs_5jzVwI7TkKqXk6rsEYBpn6NPqhEMXp9d5cc2XMirHGyEwDIHs';
     const VISITS_STORAGE_KEY = 'jurek36ai_local_visits'; // Klucz do przechowywania licznika w localStorage
+
 
     const chat = document.getElementById('chat');
     const messageInput = document.getElementById('message');
@@ -847,6 +849,7 @@
         const currentLocalVisits = incrementLocalVisitsCount();
 
         // 2. Przygotuj wiadomość
+        // Pamiętaj: To jest licznik LOKALNY z tej przeglądarki, a NIE całkowita liczba wejść na stronę
         const webhookMessage = langData.webhookVisitMessage(currentLocalVisits);
 
         // 3. Wyślij wiadomość na webhooka
