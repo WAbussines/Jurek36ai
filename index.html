@@ -3,547 +3,237 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>jurek36AI Chatbot (DeepHermes 3 Mistral 24B Preview)</title>
+  <title>jurek36AI Chatbot</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
   <style>
     /* Custom scrollbar for better appearance */
-    /* Niestandardowy pasek przewijania dla lepszego wyglądu */
     #chat::-webkit-scrollbar {
       width: 8px;
     }
     #chat::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1); /* Slightly transparent track */
+      background: rgba(255, 255, 255, 0.1);
       border-radius: 10px;
     }
     #chat::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3); /* Slightly transparent thumb */
+      background: rgba(255, 255, 255, 0.3);
       border-radius: 10px;
     }
     #chat::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.5); /* More visible on hover */
+      background: rgba(255, 255, 255, 0.5);
     }
 
     /* Animated Gradient Background */
-    /* Animowane tło gradientowe */
     body {
       margin: 0;
       padding: 0;
-      font-family: sans-serif; /* Ensure a fallback font */
+      font-family: 'Inter', sans-serif;
       background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
       background-size: 400% 400%;
-      animation: gradientAnimation 15s ease infinite; /* Slow, continuous animation */
-      color: #333; /* Default text color */
+      animation: gradientAnimation 15s ease infinite;
+      color: #333;
     }
 
     @keyframes gradientAnimation {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
     }
 
-    /* Center and constrain the chat container */
-    /* Wyśrodkowanie i ograniczenie kontenera czatu */
-    .chat-container-wrapper {
+    .page-wrapper {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh; /* Full viewport height */
-        padding: 1rem; /* p-4 */
-        width: 100%; /* Ensure it takes full width for centering */
+        flex-direction: column; /* Ustawiamy elementy pionowo */
+        align-items: center; /* Centrujemy w poziomie */
+        min-height: 100vh;
+        padding: 1rem;
+        width: 100%;
+        box-sizing: border-box; /* Upewnij się, że padding nie rozszerza elementu */
     }
 
     .chat-container {
         width: 100%;
-        max-width: 500px; /* max-w-lg */
-        background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
-        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-xl */
-        border-radius: 1rem; /* rounded-2xl */
+        max-width: 500px;
+        background-color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        border-radius: 1rem;
         display: flex;
         flex-direction: column;
-        overflow: hidden; /* Hides container scrollbar */
-        height: 90vh; /* h-[90vh] */
-        max-height: 700px; /* max-h-[700px] */
+        overflow: hidden;
+        height: 90vh;
+        max-height: 700px;
+        margin-top: 1rem; /* Dodajemy margines od góry (jeśli reklama jest na górze) */
+        margin-bottom: 1rem; /* Dodajemy margines od dołu (jeśli reklama jest na dole) */
     }
 
-    /* Header styling */
-    /* Styl nagłówka */
-    .chat-header {
-      background: rgba(59, 130, 246, 0.8); /* Tailwind blue-500 with transparency */
-      color: white;
-      padding: 1.5rem; /* p-6 */
-      font-size: 1.5rem; /* text-2xl */
-      font-weight: bold;
-      text-align: center;
-      border-top-left-radius: 1rem; /* Match container border */
-      border-top-right-radius: 1.rem; /* Match container border */
-      position: relative; /* Needed for button positioning */
-    }
-
-    /* Main chat area styling */
-    /* Styl głównego obszaru czatu */
-    .chat-main {
-        flex: 1;
-        padding: 1rem; /* p-4 */
-        overflow-y: auto; /* THIS ENABLES VERTICAL SCROLLING */
-        space-y: 1rem; /* space-y-4 */
-        background-color: rgba(249, 250, 251, 0.7); /* Tailwind gray-50 with transparency */
-    }
-
-    /* Footer styling */
-    /* Styl stopki */
-    .chat-footer {
-        padding: 1rem; /* p-4 */
-        background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
-        border-top: 1px solid #e5e7eb; /* border-t border-gray-200 */
-        display: flex;
-    }
-
-    /* Input row styling */
-    /* Styl wiersza wprowadzania */
-    .input-row {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem; /* Space between input and send button */
-    }
-
-    /* Input styling */
-    /* Styl pola wprowadzania */
-    .chat-input {
-        flex: 1;
-        padding: 0.5rem 1rem; /* px-4 py-2 */
-        border: 1px solid #d1d5db; /* border border-gray-300 */
-        border-radius: 0.5rem 0 0 0.5rem; /* Rounded left */
-        outline: none;
-        transition: border-color 0.2s ease-in-out, ring-color 0.2s ease-in-out;
-    }
-     /* Restore rounded corner on the right for input */
-     .input-row .chat-input {
-        border-top-right-radius: 0.5rem; /* Restore rounded corner */
-        border-bottom-right-radius: 0.5rem; /* Restore rounded corner */
-    }
-
-
-    .chat-input:focus {
-        border-color: #60a5fa; /* focus:border-blue-500 */
-        ring: 2px; /* focus:ring-2 */
-        ring-color: #93c5fd; /* focus:ring-blue-300 */
-    }
-    .chat-input:disabled {
-        background-color: #f3f4f6; /* disabled:bg-gray-100 */
-        cursor: not-allowed;
-    }
-
-    /* Send button styling */
-    /* Styl przycisku wyślij */
-    .chat-send-button {
-        padding: 0.5rem 1rem; /* px-4 py-2 */
-        background-color: #3b82f6; /* bg-blue-500 */
-        color: white;
-        border-radius: 0.5rem; /* Fully rounded */
-        transition: background-color 0.2s ease-in-out;
-        border: none; /* Remove default button border */
-        cursor: pointer;
-    }
-     /* Remove rounded corner on the left for button next to input */
-    .input-row .chat-send-button {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-    }
-
-    .chat-send-button:hover {
-        background-color: #2563eb; /* hover:bg-blue-600 */
-    }
-    .chat-send-button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    /* Message bubble styling */
-    /* Styl dymków wiadomości */
-    .message-bubble {
-      display: inline-block; /* Makes the bubble width fit its content */
-      /* Sprawia, że szerokość dymka dopasowuje się do jego zawartości */
-      padding: 0.5rem 1rem; /* px-4 py-2 */
-      border-radius: 0.5rem; /* General rounded corners */
-      max-width: 80%; /* Prevents the bubble from being too wide */
-      /* Zapobiega zbyt dużej szerokości dymka */
-      word-wrap: break-word; /* Prevents long words from overflowing */
-      /* Zapobiega przepełnieniu przez długie słowa */
-      white-space: pre-wrap; /* Respect newlines in plain text messages */
-      /* Zachowuje nowe wiersze w zwykłym tekście */
-    }
-
-    .message-bubble.user {
-      background-color: rgba(59, 130, 246, 0.9); /* blue-500 with transparency */
-      color: white;
-      border-top-right-radius: 0; /* Pointed corner */
-    }
-
-    .message-bubble.bot {
-      background-color: rgba(229, 231, 235, 0.9); /* gray-200 with transparency */
-      color: #1f2937; /* gray-800 */
-      border-top-left-radius: 0; /* Pointed corner */
-    }
-
-     /* Style for images within message bubbles */
-    /* Style dla obrazów wewnątrz dymków wiadomości */
-    .message-bubble img {
-        max-width: 100%; /* Ensure images don't overflow the bubble */
-        /* Upewnij się, że obrazy nie wychodzą poza dymek */
-        height: auto;
-        border-radius: 0.5rem; /* Rounded corners for images */
-        /* Zaokrąglone rogi dla obrazów */
-        margin-top: 0.5rem; /* Space above the image */
-        /* Odstęp nad obrazem */
-    }
-
-
-    /* Style for blocks of code generated by marked.js */
-    /* Styl dla bloków kodu generowanych przez marked.js */
-    .message-bubble pre {
-      background-color: rgba(203, 213, 225, 0.8); /* Tailwind gray-300 with transparency */
-      padding: 0.75rem; /* p-3 */
-      border-radius: 0.5rem; /* rounded-lg */
-      overflow-x: auto; /* Enables horizontal scrolling for long lines */
-      position: relative; /* Needed for absolute positioning of the copy button */
-      margin-top: 0.5rem; /* Some space above the code block */
-      margin-bottom: 0.5rem; /* Some space below the code block */
-      line-height: 1.4; /* Improve readability of code */
-      color: #1f2937; /* Darker text for readability */
-    }
-
-    .message-bubble pre code {
-      font-family: 'Fira Code', 'Cascadia Code', 'Source Code Pro', monospace; /* Prefer monospaced fonts */
-      font-size: 0.9rem;
-      display: block; /* Ensures code takes full width of pre block */
-    }
-
-    /* Basic Markdown styling for elements generated by marked.js */
-    /* Podstawowy styl Markdown dla elementów generowanych przez marked.js */
-    /* Adjust as needed to match your design system */
-    .message-bubble strong {
-      font-weight: bold;
-    }
-    .message-bubble em {
-      font-style: italic;
-    }
-    .message-bubble a {
-      color: #3182ce; /* Blue link */
-      text-decoration: underline;
-    }
-    .message-bubble ul, .message-bubble ol {
-      list-style-position: inside;
-      padding-left: 1.25rem; /* pl-5 */
-      margin-bottom: 0.5rem;
-    }
-    .message-bubble li {
-      margin-bottom: 0.25rem;
-    }
-    .message-bubble h1, .message-bubble h2, .message-bubble h3, .message-bubble h4, .message-bubble h5, .message-bubble h6 {
-      font-weight: bold;
-      margin-top: 1rem;
-      margin-bottom: 0.5rem;
-      line-height: 1.2;
-      color: #1f2937; /* Dark color for headings */
-    }
-    .message-bubble h1 { font-size: 1.5rem; } /* text-2xl */
-    .message-bubble h2 { font-size: 1.25rem; } /* text-xl */
-    
-```html
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>jurek36AI Chatbot (DeepHermes 3 Mistral 24B Preview)</title>
-  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
-  <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)"></script>
-  <script src="[https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js](https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js)"></script>
-  <style>
-    /* Custom scrollbar for better appearance */
-    /* Niestandardowy pasek przewijania dla lepszego wyglądu */
-    #chat::-webkit-scrollbar {
-      width: 8px;
-    }
-    #chat::-webkit-scrollbar-track {
-      background: rgba(255, 255, 255, 0.1); /* Slightly transparent track */
-      border-radius: 10px;
-    }
-    #chat::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.3); /* Slightly transparent thumb */
-      border-radius: 10px;
-    }
-    #chat::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.5); /* More visible on hover */
-    }
-
-    /* Animated Gradient Background */
-    /* Animowane tło gradientowe */
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: sans-serif; /* Ensure a fallback font */
-      background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-      background-size: 400% 400%;
-      animation: gradientAnimation 15s ease infinite; /* Slow, continuous animation */
-      color: #333; /* Default text color */
-    }
-
-    @keyframes gradientAnimation {
-      0% {
-        background-position: 0% 50%;
-      }
-      50% {
-        background-position: 100% 50%;
-      }
-      100% {
-        background-position: 0% 50%;
-      }
-    }
-
-    /* Center and constrain the chat container */
-    /* Wyśrodkowanie i ograniczenie kontenera czatu */
-    .chat-container-wrapper {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh; /* Full viewport height */
-        padding: 1rem; /* p-4 */
-        width: 100%; /* Ensure it takes full width for centering */
-    }
-
-    .chat-container {
+    .ad-container {
         width: 100%;
-        max-width: 500px; /* max-w-lg */
-        background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
-        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-xl */
-        border-radius: 1rem; /* rounded-2xl */
-        display: flex;
-        flex-direction: column;
-        overflow: hidden; /* Hides container scrollbar */
-        height: 90vh; /* h-[90vh] */
-        max-height: 700px; /* max-h-[700px] */
+        max-width: 500px; /* Dopasuj szerokość do szerokości kontenera czatu */
+        margin: 1rem auto; /* Centruj i dodaj margines */
+        text-align: center; /* Centruj reklamę w poziomie */
     }
 
-    /* Header styling */
-    /* Styl nagłówka */
+
     .chat-header {
-      background: rgba(59, 130, 246, 0.8); /* Tailwind blue-500 with transparency */
+      background: rgba(59, 130, 246, 0.9);
       color: white;
-      padding: 1.5rem; /* p-6 */
-      font-size: 1.5rem; /* text-2xl */
-      font-weight: bold;
+      padding: 1.25rem;
+      font-size: 1.25rem;
+      font-weight: 600;
       text-align: center;
-      border-top-left-radius: 1rem; /* Match container border */
-      border-top-right-radius: 1.rem; /* Match container border */
-      position: relative; /* Needed for button positioning */
+      border-top-left-radius: 1rem;
+      border-top-right-radius: 1rem;
     }
 
-    /* Main chat area styling */
-    /* Styl głównego obszaru czatu */
     .chat-main {
         flex: 1;
-        padding: 1rem; /* p-4 */
-        overflow-y: auto; /* THIS ENABLES VERTICAL SCROLLING */
-        space-y: 1rem; /* space-y-4 */
-        background-color: rgba(249, 250, 251, 0.7); /* Tailwind gray-50 with transparency */
+        padding: 1rem;
+        overflow-y: auto;
+        background-color: rgba(249, 250, 251, 0.8);
+    }
+    .chat-main > div {
+        margin-bottom: 0.75rem;
     }
 
-    /* Footer styling */
-    /* Styl stopki */
     .chat-footer {
-        padding: 1rem; /* p-4 */
-        background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
-        border-top: 1px solid #e5e7eb; /* border-t border-gray-200 */
+        padding: 1rem;
+        background-color: rgba(255, 255, 255, 0.95);
+        border-top: 1px solid #e5e7eb;
         display: flex;
     }
 
-    /* Input row styling */
-    /* Styl wiersza wprowadzania */
     .input-row {
         display: flex;
         align-items: center;
-        gap: 0.5rem; /* Space between input and send button */
+        gap: 0.75rem;
+        width: 100%;
     }
 
-    /* Input styling */
-    /* Styl pola wprowadzania */
     .chat-input {
         flex: 1;
-        padding: 0.5rem 1rem; /* px-4 py-2 */
-        border: 1px solid #d1d5db; /* border border-gray-300 */
-        border-radius: 0.5rem 0 0 0.5rem; /* Rounded left */
+        padding: 0.75rem 1rem;
+        border: 1px solid #d1d5db;
+        border-radius: 0.5rem;
         outline: none;
-        transition: border-color 0.2s ease-in-out, ring-color 0.2s ease-in-out;
+        transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        font-size: 0.875rem;
     }
-     /* Restore rounded corner on the right for input */
-     .input-row .chat-input {
-        border-top-right-radius: 0.5rem; /* Restore rounded corner */
-        border-bottom-right-radius: 0.5rem; /* Restore rounded corner */
-    }
-
 
     .chat-input:focus {
-        border-color: #60a5fa; /* focus:border-blue-500 */
-        ring: 2px; /* focus:ring-2 */
-        ring-color: #93c5fd; /* focus:ring-blue-300 */
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
     }
     .chat-input:disabled {
-        background-color: #f3f4f6; /* disabled:bg-gray-100 */
+        background-color: #f3f4f6;
         cursor: not-allowed;
     }
 
-    /* Send button styling */
-    /* Styl przycisku wyślij */
     .chat-send-button {
-        padding: 0.5rem 1rem; /* px-4 py-2 */
-        background-color: #3b82f6; /* bg-blue-500 */
+        padding: 0.75rem 1.25rem;
+        background-color: #3b82f6;
         color: white;
-        border-radius: 0.5rem; /* Fully rounded */
-        transition: background-color 0.2s ease-in-out;
-        border: none; /* Remove default button border */
+        border-radius: 0.5rem;
+        transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+        border: none;
         cursor: pointer;
-    }
-     /* Remove rounded corner on the left for button next to input */
-    .input-row .chat-send-button {
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
+        font-weight: 500;
+        font-size: 0.875rem;
     }
 
     .chat-send-button:hover {
-        background-color: #2563eb; /* hover:bg-blue-600 */
+        background-color: #2563eb;
+    }
+    .chat-send-button:active {
+        transform: scale(0.98);
     }
     .chat-send-button:disabled {
-        opacity: 0.5;
+        opacity: 0.6;
         cursor: not-allowed;
     }
 
-    /* Message bubble styling */
-    /* Styl dymków wiadomości */
     .message-bubble {
-      display: inline-block; /* Makes the bubble width fit its content */
-      /* Sprawia, że szerokość dymka dopasowuje się do jego zawartości */
-      padding: 0.5rem 1rem; /* px-4 py-2 */
-      border-radius: 0.5rem; /* General rounded corners */
-      max-width: 80%; /* Prevents the bubble from being too wide */
-      /* Zapobiega zbyt dużej szerokości dymka */
-      word-wrap: break-word; /* Prevents long words from overflowing */
-      /* Zapobiega przepełnieniu przez długie słowa */
-      white-space: pre-wrap; /* Respect newlines in plain text messages */
-      /* Zachowuje nowe wiersze w zwykłym tekście */
+      display: inline-block;
+      padding: 0.625rem 1rem;
+      border-radius: 0.75rem;
+      max-width: 85%;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      font-size: 0.875rem;
+      line-height: 1.5;
     }
 
     .message-bubble.user {
-      background-color: rgba(59, 130, 246, 0.9); /* blue-500 with transparency */
+      background-color: #3b82f6;
       color: white;
-      border-top-right-radius: 0; /* Pointed corner */
+      border-top-right-radius: 0.25rem;
     }
 
     .message-bubble.bot {
-      background-color: rgba(229, 231, 235, 0.9); /* gray-200 with transparency */
-      color: #1f2937; /* gray-800 */
-      border-top-left-radius: 0; /* Pointed corner */
+      background-color: #e5e7eb;
+      color: #1f2937;
+      border-top-left-radius: 0.25rem;
     }
 
-     /* Style for images within message bubbles */
-    /* Style dla obrazów wewnątrz dymków wiadomości */
     .message-bubble img {
-        max-width: 100%; /* Ensure images don't overflow the bubble */
-        /* Upewnij się, że obrazy nie wychodzą poza dymek */
-        height: auto;
-        border-radius: 0.5rem; /* Rounded corners for images */
-        /* Zaokrąglone rogi dla obrazów */
-        margin-top: 0.5rem; /* Space above the image */
-        /* Odstęp nad obrazem */
+        max-width: 100%;
+        border-radius: 0.5rem;
+        margin-top: 0.75rem;
+        display: block;
+        border: 1px solid #d1d5db;
+    }
+    .image-caption {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-top: 0.375rem;
+        display: block;
+        text-align: center;
     }
 
-
-    /* Style for blocks of code generated by marked.js */
-    /* Styl dla bloków kodu generowanych przez marked.js */
     .message-bubble pre {
-      background-color: rgba(203, 213, 225, 0.8); /* Tailwind gray-300 with transparency */
-      padding: 0.75rem; /* p-3 */
-      border-radius: 0.5rem; /* rounded-lg */
-      overflow-x: auto; /* Enables horizontal scrolling for long lines */
-      position: relative; /* Needed for absolute positioning of the copy button */
-      margin-top: 0.5rem; /* Some space above the code block */
-      margin-bottom: 0.5rem; /* Some space below the code block */
-      line-height: 1.4; /* Improve readability of code */
-      color: #1f2937; /* Darker text for readability */
+      background-color: rgba(209, 213, 219, 0.9);
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      overflow-x: auto;
+      position: relative;
+      margin-top: 0.5rem;
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+      color: #111827;
+      font-size: 0.8125rem;
     }
 
     .message-bubble pre code {
-      font-family: 'Fira Code', 'Cascadia Code', 'Source Code Pro', monospace; /* Prefer monospaced fonts */
-      font-size: 0.9rem;
-      display: block; /* Ensures code takes full width of pre block */
+      font-family: 'Fira Code', 'Cascadia Code', 'Source Code Pro', monospace;
+      display: block;
     }
 
-    /* Basic Markdown styling for elements generated by marked.js */
-    /* Podstawowy styl Markdown dla elementów generowanych przez marked.js */
-    /* Adjust as needed to match your design system */
-    .message-bubble strong {
-      font-weight: bold;
-    }
-    .message-bubble em {
-      font-style: italic;
-    }
-    .message-bubble a {
-      color: #3182ce; /* Blue link */
-      text-decoration: underline;
-    }
-    .message-bubble ul, .message-bubble ol {
-      list-style-position: inside;
-      padding-left: 1.25rem; /* pl-5 */
-      margin-bottom: 0.5rem;
-    }
-    .message-bubble li {
-      margin-bottom: 0.25rem;
-    }
+    .message-bubble strong { font-weight: 600; }
+    .message-bubble em { font-style: italic; }
+    .message-bubble a { color: #2563eb; text-decoration: underline; }
+    .message-bubble ul, .message-bubble ol { list-style-position: inside; padding-left: 1.25rem; margin-bottom: 0.5rem; }
+    .message-bubble li { margin-bottom: 0.25rem; }
     .message-bubble h1, .message-bubble h2, .message-bubble h3, .message-bubble h4, .message-bubble h5, .message-bubble h6 {
-      font-weight: bold;
-      margin-top: 1rem;
-      margin-bottom: 0.5rem;
-      line-height: 1.2;
-      color: #1f2937; /* Dark color for headings */
+      font-weight: 600; margin-top: 1rem; margin-bottom: 0.5rem; line-height: 1.3; color: #1f2937;
     }
-    .message-bubble h1 { font-size: 1.5rem; } /* text-2xl */
-    .message-bubble h2 { font-size: 1.25rem; } /* text-xl */
-    .message-bubble h3 { font-size: 1.125rem; } /* text-lg */
-    .message-bubble p {
-      margin-bottom: 0.5rem;
-    }
+    .message-bubble h1 { font-size: 1.25rem; }
+    .message-bubble h2 { font-size: 1.125rem; }
+    .message-bubble h3 { font-size: 1rem; }
+    .message-bubble p { margin-bottom: 0.5rem; }
 
-    /* Typing indicator animation */
-    /* Animacja wskaźnika pisania */
-    .typing-indicator span {
-        animation: blink 1s infinite;
-    }
-
-    .typing-indicator span:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-
-    .typing-indicator span:nth-child(3) {
-        animation-delay: 0.4s;
-    }
+    .typing-indicator span { animation: blink 1.2s infinite; }
+    .typing-indicator span:nth-child(2) { animation-delay: 0.25s; }
+    .typing-indicator span:nth-child(3) { animation-delay: 0.5s; }
 
     @keyframes blink {
-        0%, 80%, 100% { opacity: 0; }
+        0%, 80%, 100% { opacity: 0.3; }
         40% { opacity: 1; }
     }
-
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
   </style>
 </head>
 <body>
-  <div class="chat-container-wrapper">
+  <div class="page-wrapper">
+
     <div class="chat-container">
       <header class="chat-header">
         <h1>jurek36AI Chatbot</h1>
@@ -552,298 +242,305 @@
         </main>
       <footer class="chat-footer">
         <div class="input-row">
-            <input id="message" type="text" placeholder="Napisz wiadomość..."
+            <input id="message" type="text" placeholder="Napisz wiadomość lub /obraz <opis>..."
                    class="chat-input" />
-
             <button id="send" class="chat-send-button">
               Wyślij
             </button>
         </div>
       </footer>
     </div>
-  </div>
 
-  <script>
+    </div> <script>
     // !!! === BARDZO WAŻNE OSTRZEŻENIE BEZPIECZEŃSTWA === !!!
-    // PONIŻEJ MUSISZ WPROWADZIĆ SWÓJ KLUCZ API OPENROUTER.
+    // PONIŻEJ ZNAJDUJE SIĘ TWÓJ KLUCZ API OPENROUTER.
     // UMIESZCZANIE KLUCZA API BEZPOŚREDNIO W KODZIE KLIENTA (FRONTENDU)
-    // JEST BARDZO NIEBEZPIECZNE! KAZDY, KTO OTWORZY KONSOLĘ PRZEGLĄDARKĘ,
-    // BĘDZIE MÓGŁ ZOBACZYĆ I UKRAŚĆ SWÓJ KLUCZ.
+    // JEST BARDZO NIEBEZPIECZNE! KAZDY, KTO OTWORZY KONSOLĘ PRZEGLĄDARKI,
+    // BĘDZIE MÓGŁ ZOBACZYĆ I UKRAŚĆ TWÓJ KLUCZ.
     // ZALECAM UŻYCIE TEGO ROZWIĄZANIA TYLKO DO TESTÓW/ROZWOJU LOKALNEGO.
     // DLA APLIKACJI PRODUKCYJNYCH ZAWSZE UŻYWAJ BEZPIECZNEGO BACKENDU,
     // KTÓRY BĘDZIE PRZECHOWYWAŁ KLUCZ API I POŚREDNICZYŁ W KOMUNIKACJI.
-    // Zarejestruj się na OpenRouter.ai, aby uzyskać darmowy klucz API.
-    const OPENROUTER_API_KEY = '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'; // <--- TUTAJ WPROWADŹ SWÓJ KLUCZ API OPENROUTER
+    const OPENROUTER_API_KEY = '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'; // <--- TWÓJ KLUCZ API
+
+    // === KONFIGURACJA WEBHOOKA DISCORD ===
+    const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1371742303135207444/Z8u_qd8gzRufHFEbEs_5jzVwI7TkKqXk6rsEYBpn6NPqhEMXp9d5cc2XMirHGyEwDIHs';
+    const VISITS_STORAGE_KEY = 'jurek36ai_local_visits'; // Klucz do przechowywania licznika w localStorage
 
     const chat = document.getElementById('chat');
     const messageInput = document.getElementById('message');
     const sendBtn = document.getElementById('send');
 
-    let loadingMessageElement = null; // Reference to the loading indicator element
-    // Referencja do elementu wskaźnika ładowania
-    let currentLanguage = 'pl'; // Default language
-    // Domyślny język
-
-    // Key for localStorage
-    // Klucz dla localStorage
-    const CHAT_STORAGE_KEY = 'jurek36ai_chat_history';
-
-    // Store chat history for context
-    // Przechowuj historię czatu dla kontekstu
+    let loadingMessageElement = null;
+    let currentLanguage = 'pl';
+    const CHAT_STORAGE_KEY = 'jurek36ai_chat_history_v2_img_v2';
     let chatHistory = [];
 
-    // Marked.js configuration (optional but recommended for security and specific needs)
-    // Konfiguracja Marked.js (opcjonalne, ale polecane dla bezpieczeństwa i specyficznych potrzeb)
     marked.setOptions({
-      breaks: true, // Render newlines as <br/>
-      gfm: true,    // Enable GitHub Flavored Markdown
-      // To add code syntax highlighting (coloring), uncomment the section below
-      // and add the highlight.js CSS and JS links in the <head> section (see commented links).
-      // Aby dodać podświetlanie składni kodu (kolorowanie), odkomentuj poniższą sekcję
-      // i dodaj linki do highlight.js CSS i JS w sekcji <head> (patrz zakomentowane linki).
-      // highlight: function(code, lang) {
-      //   const hljs = require('highlight.js'); // In a browser environment, highlight.js is global
-      //   // W środowisku przeglądarki highlight.js jest globalne
-      //   const language = hljs.getLanguage(lang) ? lang : 'plaintext';
-      //   try {
-      //     return hljs.highlight(code, { language }).value;
-      //   } catch (e) {
-      //     console.error("Highlighting error:", e);
-      //     return code; // Return original code if highlighting fails
-      //   }
-      // },
+      breaks: true,
+      gfm: true,
     });
 
-    // Dictionary of translations for various UI elements and messages
-    // Słownik tłumaczeń dla różnych elementów UI i komunikatów
     const translations = {
       'pl': {
-        systemMessage: 'Jesteś pomocnym asystentem, który mówi po polsku. Gdy odpowiadasz, możesz używać formatowania Markdown takiego jak **pogrubienie**, *kursywa*, `kod inline` lub bloki kodu:\n```javascript\nconsole.log("Witaj!");\n```\nMożesz poprosić o wygenerowanie obrazu, używając komendy "/obraz [opis obrazu]". Pamiętaj, że to tylko symulacja generowania obrazu.',
-        inputPlaceholder: 'Napisz wiadomość...',
+        systemMessage: 'Jesteś pomocnym asystentem AI o nazwie jurek36AI. Mówisz po polsku. Odpowiadaj zwięźle i na temat. Możesz używać formatowania Markdown.',
+        inputPlaceholder: 'Napisz wiadomość lub /obraz <opis>...',
         sendButtonText: 'Wyślij',
-        loadingText: 'jurek36AI pisze...', // Updated text for typing indicator
-        // Zaktualizowany tekst dla wskaźnika pisania
+        loadingText: 'jurek36AI pisze...',
+        imageGeneratingText: 'jurek36AI generuje obraz...',
         errorGeneric: 'Wystąpił nieoczekiwany błąd komunikacji.',
-        errorApi: 'Błąd API.', // More general error message
-        // Bardziej ogólny komunikat o błędzie
-        errorApiRequest: 'Błąd żądania (400). Upewnij się, że Twoje żądanie jest poprawne.',
+        errorApi: 'Błąd API OpenRouter.',
+        errorApiRequest: 'Błędne żądanie (400). Upewnij się, że Twoje żądanie jest poprawna.',
         errorApiAuth: 'Błąd autoryzacji (401). Sprawdź swój klucz API.',
-        errorApiQuota: 'Przekroczono limit zapytań (429). Spróbuj ponownie później.',
-        errorApiServer: (status) => `Błąd serwera (${status}). Spróbuj ponownie później.`,
+        errorApiQuota: 'Przekroczono limit zapytań (429) lub brak środków. Spróbuj ponownie później lub sprawdź stan konta OpenRouter.',
+        errorApiServer: (status) => `Błąd serwera OpenRouter (${status}). Spróbuj ponownie później.`,
+        errorMethodNotAllowed: 'Metoda niedozwolona (405). Problem z konfiguracją serwera API. Sprawdź konsolę.',
         errorNoReply: 'Nie otrzymano odpowiedzi tekstowej od bota.',
-        imageSimulationMessage: (description) => `Wygenerowano symulację obrazu dla: "${description}". [Image of Symulacja obrazu dla: ${description}]` // Message for simulated image
-        // Wiadomość dla symulowanego obrazu
+        errorImageGeneration: 'Błąd podczas generowania obrazu.',
+        errorNoImageReturned: 'API nie zwróciło obrazu. Sprawdź konsolę (F12) po więcej szczegółów.',
+        errorParsingResponse: 'Błąd parsowania odpowiedzi serwera. Sprawdź konsolę (F12).',
+        imageCaptionPrefix: 'Wygenerowany obraz na podstawie opisu:',
+        webhookVisitMessage: (count) => `Nowe wejście na stronę! Lokalna liczba wejść z tej przeglądarki: ${count}.`, // Wiadomość na webhooka
+        webhookErrorMessage: (error) => `Błąd wysyłania wiadomości na webhooka: ${error}`, // Wiadomość o błędzie webhooka
       },
       'en': {
-        systemMessage: 'You are a helpful assistant who speaks English. When responding, you can use Markdown formatting like **bold**, *italics*, `inline code` or code blocks:\n```javascript\nconsole.log("Hello!");\n```\nYou can ask to generate an image using the command "/image [image description]". Note that this is just a simulated image generation.',
-        inputPlaceholder: 'Write a message...',
+        systemMessage: 'You are a helpful AI assistant named jurek36AI. You speak English. Respond concisely and to the point. You can use Markdown formatting.',
+        inputPlaceholder: 'Write a message or /image <description>...',
         sendButtonText: 'Send',
-        loadingText: 'jurek36AI is typing...', // Updated text for typing indicator
+        loadingText: 'jurek36AI is typing...',
+        imageGeneratingText: 'jurek36AI is generating an image...',
         errorGeneric: 'An unexpected communication error occurred.',
-        errorApi: 'API Error.',
+        errorApi: 'OpenRouter API Error.',
         errorApiRequest: 'Bad request (400). Ensure your request is correct.',
         errorApiAuth: 'Authorization error (401). Check your API key.',
-        errorApiQuota: 'Quota exceeded (429). Try again later.',
-        errorApiServer: (status) => `Server error (${status}). Please try again later.`,
+        errorApiQuota: 'Quota exceeded (429) or out of funds. Try again later or check your OpenRouter account status.',
+        errorApiServer: (status) => `OpenRouter Server error (${status}). Please try again later.`,
+        errorMethodNotAllowed: 'Method Not Allowed (405). API server configuration issue. Check console.',
         errorNoReply: 'No text reply received from the bot.',
-        imageSimulationMessage: (description) => `Generated image simulation for: "${description}". [Image of Image simulation for: ${description}]` // Message for simulated image
+        errorImageGeneration: 'Error generating image.',
+        errorNoImageReturned: 'The API did not return an image. Check console (F12) for more details.',
+        errorParsingResponse: 'Error parsing server response. Check console (F12).',
+        imageCaptionPrefix: 'Generated image based on description:',
+        webhookVisitMessage: (count) => `New page visit! Local visits from this browser: ${count}.`, // Webhook message
+        webhookErrorMessage: (error) => `Error sending webhook message: ${error}`, // Webhook error message
       }
     };
 
-     // Function to save chat history to localStorage
-    // Funkcja do zapisywania historii czatu w localStorage
-    function saveChatHistory() {
-        // Save the chatHistory array directly
-        // Zapisz bezpośrednio tablicę chatHistory
-        localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatHistory));
+    // === FUNKCJE OBSŁUGI LICZNIKA WEJŚĆ (LOKALNEGO) ===
+    function getLocalVisitsCount() {
+        try {
+            const count = localStorage.getItem(VISITS_STORAGE_KEY);
+            return count ? parseInt(count, 10) : 0;
+        } catch (e) {
+            console.error("Błąd odczytu licznika z localStorage:", e);
+            return 0;
+        }
     }
 
-    // Function to load chat history from localStorage
-    // Funkcja do ładowania historii czatu z localStorage
+    function incrementLocalVisitsCount() {
+        try {
+            const currentCount = getLocalVisitsCount();
+            const newCount = currentCount + 1;
+            localStorage.setItem(VISITS_STORAGE_KEY, newCount);
+            return newCount;
+        } catch (e) {
+            console.error("Błąd zapisu licznika do localStorage:", e);
+            return getLocalVisitsCount(); // Zwróć poprzednią wartość, jeśli zapis się nie udał
+        }
+    }
+
+    // === FUNKCJA WYSYŁAJĄCA WIADOMOŚĆ NA WEBHOOKA ===
+    async function sendWebhookMessage(message) {
+        try {
+            const response = await fetch(DISCORD_WEBHOOK_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    content: message // Treść wiadomości na Discordzie
+                    // Możesz dodać inne pola payloadu webhooka, np. username, avatar_url, embeds
+                    // username: 'jurek36AI Visit Bot',
+                    // avatar_url: 'URL_DO_IKONY',
+                }),
+            });
+
+            if (!response.ok) {
+                console.error(`Błąd HTTP podczas wysyłania na webhooka: ${response.status} ${response.statusText}`);
+                const errorText = await response.text();
+                console.error('Odpowiedź webhooka:', errorText);
+                // Opcjonalnie: wyświetl błąd w konsoli lub w interfejsie
+                const langData = translations[currentLanguage] || translations['en'];
+                console.error(langData.webhookErrorMessage(`HTTP ${response.status}`));
+            } else {
+                console.log('Wiadomość na webhooka wysłana pomyślnie.');
+            }
+        } catch (error) {
+            console.error('Błąd sieciowy podczas wysyłania na webhooka:', error);
+             const langData = translations[currentLanguage] || translations['en'];
+             console.error(langData.webhookErrorMessage(error.message || 'Błąd sieci'));
+        }
+    }
+
+
+    function saveChatHistory() {
+        try {
+            localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatHistory));
+        } catch (e) {
+            console.error("Błąd podczas zapisywania historii czatu:", e);
+        }
+    }
+
     function loadChatHistory() {
         const savedHistory = localStorage.getItem(CHAT_STORAGE_KEY);
         if (savedHistory) {
             try {
                 const messages = JSON.parse(savedHistory);
-                // Clear current chat display
-                // Wyczyść obecny widok czatu
                 chat.innerHTML = '';
-                chatHistory = []; // Clear the history array before loading
+                chatHistory = [];
 
                 messages.forEach(msg => {
-                     // Append messages to the display and rebuild chatHistory
-                     // Dodaj wiadomości do widoku i odbuduj chatHistory
-                    // For loaded messages, we need to check if it was a simulated image message
-                    // Dla załadowanych wiadomości, musimy sprawdzić, czy to była wiadomość z symulowanym obrazem
-                    let displayedContent = msg.content;
-                    let isSimulatedImage = false;
-
-                    // Check if the message content contains the simulated image placeholder
-                    // Sprawdź, czy treść wiadomości zawiera placeholder symulowanego obrazu
-                    const imagePlaceholderMatch = msg.content.match(/\/);
-                    if (imagePlaceholderMatch && msg.sender === 'bot') {
-                        const description = imagePlaceholderMatch[1].replace('Symulacja obrazu dla: ', '').replace('Image simulation for: ', ''); // Extract description
-                         // Wypakuj opis
-                        const imageUrl = `https://placehold.co/300x200?text=${encodeURIComponent(description)}`;
-                        // Reconstruct the message to display the image
-                        // Odbuduj wiadomość, aby wyświetlić obraz
-                        displayedContent = msg.content.replace(imagePlaceholderMatch[0], `<br><img src="${imageUrl}" alt="Simulated image for: ${description}">`);
-                        isSimulatedImage = true;
+                    if (msg.type === 'image') {
+                         const langData = translations[currentLanguage] || translations['en'];
+                        appendImage(msg.content, msg.prompt, false);
+                        chatHistory.push({
+                            role: 'assistant',
+                            type: 'image',
+                            content: msg.content,
+                            prompt: msg.prompt
+                        });
+                    } else {
+                        const contentToSanitize = typeof msg.content === 'string' ? msg.content : '';
+                        const sanitizedContent = msg.sender === 'user' ? contentToSanitize : DOMPurify.sanitize(contentToSanitize);
+                        appendMessage(sanitizedContent, msg.sender, false);
+                         chatHistory.push({ role: msg.role, content: contentToSanitize });
                     }
-
-
-                    const sanitizedContent = msg.sender === 'user' ? displayedContent : DOMPurify.sanitize(displayedContent); // Sanitize loaded HTML
-                    appendMessage(sanitizedContent, msg.sender, false); // Pass false for isNewMessage
-                    // Rebuild chatHistory array with original content for API calls (if needed later)
-                    // Odbuduj tablicę chatHistory z oryginalną treścią dla wywołań API (jeśli będzie potrzebne później)
-                     // For now, we store the original text content for text-based models
-                    // Na razie przechowujemy oryginalną treść tekstową dla modeli tekstowych
-                    chatHistory.push({ role: msg.sender === 'user' ? 'user' : 'assistant', content: msg.content });
                 });
-                 // Scroll to the bottom after loading history
-                // Przewiń do dołu po załadowaniu historii
-                chat.scrollTop = chat.scrollHeight;
+                setTimeout(() => chat.scrollTop = chat.scrollHeight, 0);
             } catch (e) {
-                console.error("Error loading chat history from localStorage:", e);
-                // Clear invalid history if loading fails
-                // Wyczyść nieprawidłową historię, jeśli ładowanie się nie powiedzie
+                console.error("Błąd ładowania historii czatu z localStorage:", e);
                 localStorage.removeItem(CHAT_STORAGE_KEY);
-                chatHistory = []; // Ensure history array is empty
+                chatHistory = [];
             }
         }
     }
 
 
-    // Function to apply language to UI elements
-    // Funkcja do stosowania języka do elementów UI
     function applyLanguageToUI() {
-      const langData = translations[currentLanguage] || translations['en']; // Fallback to English
-      // Fallback na angielski
+      const langData = translations[currentLanguage] || translations['en'];
       messageInput.placeholder = langData.inputPlaceholder;
       sendBtn.innerText = langData.sendButtonText;
-       // Update system message in translations based on current language
-      // Zaktualizuj wiadomość systemową w tłumaczeniach na podstawie obecnego języka
-      translations['pl'].systemMessage = 'Jesteś pomocnym asystentem, który mówi po polsku. Gdy odpowiadasz, możesz używać formatowania Markdown takiego jak **pogrubienie**, *kursywa*, `kod inline` lub bloki kodu:\n```javascript\nconsole.log("Witaj!");\n```\nMożesz poprosić o wygenerowanie obrazu, używając komendy "/obraz [opis obrazu]". Pamiętaj, że to tylko symulacja generowania obrazu.';
-      translations['en'].systemMessage = 'You are a helpful assistant who speaks English. When responding, you can use Markdown formatting like **bold**, *italics*, `inline code` or code blocks:\n```javascript\nconsole.log("Hello!");\n```\nYou can ask to generate an image using the command "/image [image description]". Note that this is just a simulated image generation.';
+       loadChatHistory();
     }
 
-    // Function to detect and set language based on user's IP (approximate)
-    // Funkcja do wykrywania i ustawiania języka na podstawie IP użytkownika (przybliżone)
     async function detectAndSetLanguage() {
       try {
-        const response = await fetch('[http://ip-api.com/json/?fields=countryCode](http://ip-api.com/json/?fields=countryCode)');
-        const data = await response.json();
-
-        if (data.status === 'success' && data.countryCode) {
-          if (data.countryCode.toUpperCase() === 'PL') {
-            currentLanguage = 'pl';
-          } else {
-            currentLanguage = 'en';
-          }
+        const storedLang = localStorage.getItem('jurek36ai_language');
+        if (storedLang && translations[storedLang]) {
+            currentLanguage = storedLang;
         } else {
-          console.warn('Could not detect language from IP. Status:', data.status, data.message);
+            const response = await fetch('https://ipapi.co/json/');
+            if (!response.ok) throw new Error(`IP API fetch failed: ${response.status}`);
+            const data = await response.json();
+
+            if (data && data.country_code) {
+              currentLanguage = data.country_code.toLowerCase() === 'pl' ? 'pl' : 'en';
+            } else {
+                const browserLang = navigator.language || navigator.userLanguage;
+                if (browserLang.toLowerCase().startsWith('pl')) {
+                    currentLanguage = 'pl';
+                } else {
+                    currentLanguage = 'en';
+                }
+                console.warn('Wykrywanie języka przez IP nie powiodło się. Próba użycia języka przeglądarki:', currentLanguage);
+            }
+            localStorage.setItem('jurek36ai_language', currentLanguage);
         }
       } catch (error) {
-        console.warn('Error detecting language from IP, defaulting to', currentLanguage, '. Error:', error);
+        console.warn('Błąd podczas wykrywania języka, używam domyślnego:', currentLanguage, '. Błąd:', error);
+        const browserLang = navigator.language || navigator.userLanguage;
+        if (browserLang.toLowerCase().startsWith('pl')) {
+            currentLanguage = 'pl';
+        } else {
+            currentLanguage = 'en';
+        }
+         console.warn('Użyto języka przeglądarki jako fallback:', currentLanguage);
+         localStorage.setItem('jurek36ai_language', currentLanguage);
       } finally {
         applyLanguageToUI();
-        loadChatHistory(); // Load history after setting language and UI
+        loadChatHistory();
       }
     }
 
-    // Function to append messages to the chat window
-    // Funkcja do dodawania wiadomości do okna czatu
-    // Added isNewMessage parameter to control saving
-    // Dodano parametr isNewMessage do kontrolowania zapisu
-    function appendMessage(text, sender, isNewMessage = true) {
-      const langData = translations[currentLanguage] || translations['en'];
 
+    function appendMessage(text, sender, isNewMessage = true) {
       const wrapper = document.createElement('div');
-      wrapper.className = sender === 'user'
-        ? 'text-right'
-        : 'text-left';
+      wrapper.className = `flex ${sender === 'user' ? 'justify-end' : 'justify-start'}`;
 
       const bubble = document.createElement('div');
-      // Add Tailwind classes and custom 'message-bubble' class
-      // Dodajemy klasy Tailwind i niestandardową klasę 'message-bubble'
-      bubble.className = (sender === 'user'
-        ? 'inline-block bg-blue-500 text-white px-4 py-2 rounded-tl-lg rounded-bl-lg rounded-br-lg max-w-[80%]' // User bubble styles
-        // Style dymka użytkownika
-        : 'inline-block bg-gray-200 text-gray-800 px-4 py-2 rounded-tr-lg rounded-br-lg rounded-bl-lg max-w-[80%]') // Bot bubble styles
-        // Style dymka bota
-        + ' message-bubble'; // Add the common message-bubble class
+      bubble.className = `message-bubble ${sender}`;
+
+      const textToParse = typeof text === 'string' ? text : String(text);
+
+       let htmlContent = marked.parse(textToParse);
 
       if (sender === 'bot') {
-        // Bot messages can contain HTML (from Markdown or image simulation)
-        // Wiadomości bota mogą zawierać HTML (z Markdownu lub symulacji obrazu)
-        // HTML content is already sanitized before calling appendMessage for loaded history
-        // Treść HTML jest już sanityzowana przed wywołaniem appendMessage dla załadowanej historii
-        // For new bot messages, we need to parse Markdown and sanitize
-        // Dla nowych wiadomości bota, musimy sparsować Markdown i sanityzować
-        let htmlContent = isNewMessage ? marked.parse(text) : text; // If not new, assume it's already HTML/sanitized
-        // Jeśli nie jest nowa, zakładamy, że to już HTML/sanitized
-
-        if (isNewMessage) {
-             // !!! Important for security: Sanitize HTML using DOMPurify !!!
-            // !!! Ważne dla bezpieczeństwa: Sanityzacja HTML za pomocą DOMPurify !!!
-            htmlContent = DOMPurify.sanitize(htmlContent, {
-              USE_PROFILES: { html: true }
-            });
-             // Bold the word "tak" (case-insensitive, whole word) - apply only to new bot messages
-            // Pogrubienie słowa "tak" (bez rozróżniania wielkości liter, całe słowo) - zastosuj tylko do nowych wiadomości bota
-            htmlContent = htmlContent.replace(/\b(tak)\b/gi, '<strong>$1</strong>');
-        }
-
-
-        bubble.innerHTML = htmlContent;
-
-      } else { // sender === 'user'
-         // Parse Markdown for user message text
-        // Parsuj Markdown dla tekstu wiadomości użytkownika
-        let htmlContent = marked.parse(text);
-         // Sanitize user input HTML just in case (though less critical if only text is expected)
-        // Sanityzuj HTML wprowadzony przez użytkownika na wszelki wypadek (choć mniej krytyczne, jeśli oczekiwany jest tylko tekst)
-        htmlContent = DOMPurify.sanitize(htmlContent, {
-             USE_PROFILES: { html: true }
-        });
-        bubble.innerHTML = htmlContent; // Use innerHTML to render Markdown
-        // Użyj innerHTML do renderowania Markdownu
+         htmlContent = DOMPurify.sanitize(htmlContent, { USE_PROFILES: { html: true } });
+      } else {
+         htmlContent = DOMPurify.sanitize(htmlContent, { USE_PROFILES: { html: true } });
       }
 
-      wrapper.appendChild(bubble); // Add bubble to wrapper element
-      // Dodaj dymek do elementu opakowującego
-      chat.appendChild(wrapper); // Add wrapper element to chat container
-      // Dodaj element opakowujący do kontenera czatu
+      bubble.innerHTML = htmlContent;
 
-      // Scroll to the bottom when a new message is added
-      // Przewiń do dołu, gdy dodana zostanie nowa wiadomość
+      wrapper.appendChild(bubble);
+      chat.appendChild(wrapper);
       chat.scrollTop = chat.scrollHeight;
-
-      // Add message to history if it's a new message
-      // Dodaj wiadomość do historii, jeśli to nowa wiadomość
-      if (isNewMessage) {
-          // Store original text content for API request (or simulated command)
-          // Przechowuj oryginalną treść tekstową dla żądania API (lub symulowanej komendy)
-          chatHistory.push({ role: sender === 'user' ? 'user' : 'assistant', content: text });
-          saveChatHistory(); // Save history after adding a new message
-      }
-
       return bubble;
     }
 
-    // Function to add a temporary loading indicator
-    // Funkcja do dodawania tymczasowego wskaźnika ładowania
-    function appendLoadingIndicator() {
+    function appendImage(imageUrl, prompt, isNewMessage = true) {
+        const langData = translations[currentLanguage] || translations['en'];
+        const wrapper = document.createElement('div');
+        wrapper.className = 'flex justify-start';
+
+        const bubble = document.createElement('div');
+        bubble.className = 'message-bubble bot';
+
+        const caption = document.createElement('span');
+        caption.className = 'image-caption';
+        caption.textContent = `${langData.imageCaptionPrefix} "${prompt}"`;
+        bubble.appendChild(caption);
+
+        const img = document.createElement('img');
+        img.src = imageUrl;
+        img.alt = `${langData.imageCaptionPrefix} ${prompt}`;
+        img.onerror = () => {
+            caption.textContent = langData.errorImageGeneration + ' (' + (currentLanguage === 'pl' ? 'nie udało się załadować obrazu' : 'failed to load image') + ')';
+            img.remove();
+        };
+        bubble.appendChild(img);
+
+        wrapper.appendChild(bubble);
+        chat.appendChild(wrapper);
+        chat.scrollTop = chat.scrollHeight;
+        return bubble;
+    }
+
+
+    function appendLoadingIndicator(loadingTextKey) {
       const langData = translations[currentLanguage] || translations['en'];
+      const text = langData[loadingTextKey] || langData.loadingText;
+
       const wrapper = document.createElement('div');
-      wrapper.className = 'text-left';
+      wrapper.className = 'flex justify-start';
 
       const bubble = document.createElement('div');
-      // Use spans for typing animation
-      // Użyj spanów dla animacji pisania
-      bubble.innerHTML = `<span class="typing-indicator">${langData.loadingText.split('').map(char => `<span>${char}</span>`).join('')}</span>`;
+      bubble.className = 'message-bubble bot animate-pulse';
 
-      bubble.className = 'inline-block bg-gray-200 text-gray-600 px-4 py-2 rounded-tr-lg rounded-br-lg rounded-bl-lg animate-pulse max-w-[80%]';
+      if (text.includes("...")) {
+        bubble.innerHTML = `<span class="typing-indicator">${text.replace("...", "").trim().split('').map(char => `<span>${char}</span>`).join('')}<span>.</span><span>.</span><span>.</span></span>`;
+      } else {
+        bubble.textContent = text;
+      }
 
       wrapper.appendChild(bubble);
       chat.appendChild(wrapper);
@@ -851,206 +548,311 @@
       loadingMessageElement = wrapper;
     }
 
-    // Function to remove the loading indicator
-    // Funkcja do usuwania wskaźnika ładowania
     function removeLoadingIndicator() {
       if (loadingMessageElement && loadingMessageElement.parentNode) {
-        loadingMessageElement.parentNode.removeChild(loadingMessageElement);
+        loadingMessageElement.remove();
         loadingMessageElement = null;
       }
     }
 
-    // Function to handle sending messages to the API or simulating image generation
-    // Funkcja do obsługi wysyłania wiadomości do API lub symulowania generowania obrazu
-    async function sendMessage(message) {
-      // Don't send if message is empty
-      // Nie wysyłaj, jeśli wiadomość jest pusta
-      if (!message.trim()) return;
+    async function generateImage(prompt) {
+        const langData = translations[currentLanguage] || translations['en'];
 
-      const langData = translations[currentLanguage] || translations['en'];
-      const imageCommand = currentLanguage === 'pl' ? '/obraz ' : '/image ';
+        appendMessage(`/obraz ${prompt}`, 'user');
+        chatHistory.push({ role: 'user', content: `/obraz ${prompt}` });
+        saveChatHistory();
 
-      // Check if the message is an image generation command
-      // Sprawdź, czy wiadomość jest komendą generowania obrazu
-      if (message.toLowerCase().startsWith(imageCommand)) {
-          const description = message.substring(imageCommand.length).trim();
-          if (description) {
-              // Append user message (the command)
-              // Dodaj wiadomość użytkownika (komendę)
-              appendMessage(message, 'user');
+        messageInput.value = '';
+        sendBtn.disabled = true;
+        messageInput.disabled = true;
+        appendLoadingIndicator('imageGeneratingText');
 
-              // Simulate image generation
-              // Symuluj generowanie obrazu
-              const imageUrl = `https://placehold.co/300x200?text=${encodeURIComponent(description)}`;
-              const simulationMessage = langData.imageSimulationMessage(description);
+        try {
+            const apiEndpoint = 'https://openrouter.ai/api/v1/images/generations';
+            const imageModel = 'krea/open-dalle-v1.1:free';
 
-              // Append the simulated image message from the bot
-              // Dodaj wiadomość z symulowanym obrazem od bota
-              // We manually create the HTML for the image within the message
-              // Ręcznie tworzymy HTML dla obrazu wewnątrz wiadomości
-              const botReplyContent = `${simulationMessage.split('[Image of')[0].trim()} <br><img src="${imageUrl}" alt="Simulated image for: ${description}">`;
+            const fetchOptions = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                    'X-Title': 'jurek36AI Chatbot Image Gen',
+                    'HTTP-Referer': location.href,
+                },
+                body: JSON.stringify({
+                    model: imageModel,
+                    prompt: prompt,
+                    n: 1,
+                    size: "1024x1024"
+                })
+            };
 
-              // Append the bot's reply (including the image HTML) and save to history
-              // Dodaj odpowiedź bota (włączając HTML obrazu) i zapisz do historii
-              // Note: We save the *original* simulation message text to history, not the HTML
-              // Uwaga: Zapisujemy *oryginalny* tekst wiadomości symulacyjnej do historii, nie HTML
-              appendMessage(botReplyContent, 'bot'); // Display HTML
-              // Aby zapisać do historii, dodajemy oryginalny tekst
-              chatHistory[chatHistory.length - 1].content = simulationMessage; // Update the last message in history to the original text
+            console.log('Image Generation Request Options:', JSON.stringify(fetchOptions, null, 2));
 
-              // Clear input
-              // Wyczyść pole wprowadzania
-              messageInput.value = '';
-              messageInput.focus();
-              saveChatHistory(); // Save history after adding both messages
+            const res = await fetch(apiEndpoint, fetchOptions);
 
-          } else {
-              // If command is used without description
-              // Jeśli komenda użyta bez opisu
-              appendMessage(message, 'user');
-              appendMessage("Proszę podać opis obrazu po komendzie /obraz.", 'bot'); // Customizable error message
-              messageInput.value = '';
-              messageInput.focus();
-          }
-          return; // Stop here, don't call the API
-      }
+            removeLoadingIndicator();
+            const clonedResponse = res.clone();
 
+            if (!res.ok) {
+                let errorData;
+                const contentType = res.headers.get('content-type');
 
-      // If not an image command, proceed with text generation via API
-      // Jeśli nie jest komendą obrazu, kontynuuj generowanie tekstu przez API
-      // Append user message to the chat display and history
-      // Dodaj wiadomość użytkownika do widoku czatu i historii
-      appendMessage(message, 'user'); // appendMessage now saves history
+                if (res.status === 405) {
+                    errorData = { error: { message: langData.errorMethodNotAllowed }};
+                    const errorText = await clonedResponse.text();
+                     console.error('Image Generation API Error 405: Response Text:', errorText);
+                } else if (contentType && contentType.includes('application/json')) {
+                    try {
+                        errorData = await res.json();
+                    } catch (jsonError) {
+                        console.error('Image Generation API Error: Failed to parse JSON error response:', jsonError);
+                        const errorText = await clonedResponse.text();
+                        console.error('Image Generation API Error: Non-JSON response text:', errorText);
+                         errorData = { error: { message: langData.errorParsingResponse + ` (Status: ${res.status})` } };
+                    }
+                } else {
+                    const errorText = await res.text();
+                    console.error('Image Generation API Error: Non-JSON response:', errorText);
+                    errorData = { error: { message: `Serwer zwrócił nieoczekiwaną odpowiedź (Status: ${res.status}). Zobacz konsolę.` } };
+                }
 
-      // Clear input after appending user message
-      // Wyczyść pole wprowadzania po dodaniu wiadomości użytkownika
-      messageInput.value = '';
+                console.error('Image Generation API Error Data (parsed or constructed):', errorData);
+                let displayErrorMessage = langData.errorImageGeneration;
 
-      sendBtn.disabled = true;
-      messageInput.disabled = true;
+                if (res.status === 401) displayErrorMessage = langData.errorApiAuth;
+                else if (res.status === 405) displayErrorMessage = errorData.error.message;
+                else if (res.status === 429) displayErrorMessage = langData.errorApiQuota;
+                else if (errorData.error?.message && res.status !== 405) displayErrorMessage += `: ${errorData.error.message}`;
+                else if (typeof errorData.detail === 'string') displayErrorMessage += `: ${errorData.detail}`;
+                else if (res.status !== 405) displayErrorMessage += ` (Status: ${res.status})`;
 
-      appendLoadingIndicator();
+                appendMessage(`Błąd: ${displayErrorMessage}`, 'bot');
+                chatHistory.push({ role: 'assistant', content: `Błąd: ${displayErrorMessage}` });
+                saveChatHistory();
+                return;
+            }
 
-      try {
-        // API endpoint for OpenRouter (compatible with OpenAI API format)
-        // Punkt końcowy API dla OpenRouter (kompatybilny z formatem API OpenAI)
-        const apiEndpoint = '[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)';
-        // DeepHermes 3 Mistral 24B Preview model name on OpenRouter
-        // Nazwa modelu DeepHermes 3 Mistral 24B Preview na OpenRouter
-        const modelToUse = 'nousresearch/deephermes-3-mistral-24b-preview:free'; // Using the DeepHermes 3 model on OpenRouter
+            let data;
+            try {
+                data = await res.json();
+            } catch (jsonParseError) {
+                console.error('Image Generation: Error parsing successful response as JSON:', jsonParseError);
+                const responseText = await clonedResponse.text();
+                console.error('Image Generation: Successful response text that failed to parse:', responseText);
+                appendMessage(`Błąd: ${langData.errorParsingResponse}`, 'bot');
+                chatHistory.push({ role: 'assistant', content: `Błąd: ${langData.errorParsingResponse}` });
+                saveChatHistory();
+                return;
+            }
 
-        // Prepare messages array for the API request, including history
-        // Przygotuj tablicę wiadomości dla żądania API, włączając historię
-        // The API expects an array of message objects with role and content
-        // API oczekuje tablicy obiektów wiadomości z rolą i treścią
-        const messagesForApi = chatHistory.map(msg => ({
-            role: msg.role,
-            content: msg.content
-        }));
+            const imageUrl = data.data && data.data[0] && data.data[0].url;
 
-        const res = await fetch(apiEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // Authorization header with OpenRouter API key
-            // Nagłówek autoryzacji z kluczem API OpenRouter
-            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
-            // Optional: Identify your app
-            // Opcjonalnie: Zidentyfikuj swoją aplikację
-            'X-Title': 'jurek36AI Chatbot'
-          },
-          body: JSON.stringify({
-            model: modelToUse, // Specify the model
-            // Określ model
-            messages: messagesForApi, // Send the chat history
-            // Wyślij historię czatu
-            // Optional parameters (adjust as needed)
-            // Parametry opcjonalne (dostosuj według potrzeb)
-            // temperature: 0.7,
-            // max_tokens: 150,
-            // stream: false // Set to true for streaming responses (requires different handling)
-          })
-        });
+            if (imageUrl) {
+                appendImage(imageUrl, prompt);
+                chatHistory.push({
+                    role: 'assistant',
+                    type: 'image',
+                    content: imageUrl,
+                    prompt: prompt
+                });
+                saveChatHistory();
+            } else {
+                console.warn("API nie zwróciło URL obrazu, chociaż odpowiedź była OK. Dane:", data);
+                appendMessage(langData.errorNoImageReturned, 'bot');
+                 chatHistory.push({ role: 'assistant', content: langData.errorNoImageReturned });
+                saveChatHistory();
+            }
 
-        if (!res.ok) {
-          const errorData = await res.json();
-          let displayErrorMessage = langData.errorApi;
-
-          // More detailed error messages based on status code
-          // Bardziej szczegółowe komunikaty o błędach na podstawie kodu statusu
-          if (res.status === 400) {
-             displayErrorMessage = `${langData.errorApi}: ${errorData.error?.message || langData.errorApiRequest}`;
-          } else if (res.status === 401) {
-             displayErrorMessage = `${langData.errorApi}: ${langData.errorApiAuth}`;
-          } else if (res.status === 429) {
-             displayErrorMessage = `${langData.errorApi}: ${langData.errorApiQuota}`;
-          } else if (res.status >= 500) {
-             displayErrorMessage = langData.errorApiServer(res.status);
-          } else {
-             displayErrorMessage = `${langData.errorApi}: ${errorData.error?.message || langData.errorGeneric} (Kod statusu: ${res.status})`;
-          }
-
-          throw new Error(displayErrorMessage);
+        } catch (err) {
+            removeLoadingIndicator();
+            console.error('Błąd podczas generowania obrazu (zewnętrzny catch block):', err);
+            const errorMessage = err.message || langData.errorGeneric;
+            appendMessage(`Błąd: ${errorMessage}`, 'bot');
+             chatHistory.push({ role: 'assistant', content: `Błąd: ${errorMessage}` });
+            saveChatHistory();
+        } finally {
+            sendBtn.disabled = false;
+            messageInput.disabled = false;
+            messageInput.focus();
         }
-
-        const data = await res.json();
-        // OpenRouter/OpenAI compatible API response structure
-        // Struktura odpowiedzi API kompatybilna z OpenRouter/OpenAI
-        const reply = data.choices && data.choices[0] &&
-                      data.choices[0].message && data.choices[0].message.content;
-
-
-        if (!reply) {
-            console.warn("API returned content without a text part:", data);
-            // Display a generic message if no text reply
-            // Wyświetl ogólny komunikat, jeśli brak odpowiedzi tekstowej
-            appendMessage(langData.errorNoReply, 'bot');
-        } else {
-             removeLoadingIndicator();
-             appendMessage(reply, 'bot'); // appendMessage now saves history
-        }
-
-
-      } catch (err) {
-        removeLoadingIndicator();
-        console.error('Wystąpił błąd komunikacji z API:', err);
-        // Display the specific error message in the chat
-        // Wyświetl konkretny komunikat o błędzie w czacie
-        appendMessage(`Błąd: ${err.message || langData.errorGeneric}`, 'bot');
-         // If an error occurs, remove the last user message from history to avoid sending it again
-        // Jeśli wystąpi błąd, usuń ostatnią wiadomość użytkownika z historii, aby uniknąć ponownego wysłania
-        if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
-            chatHistory.pop();
-            saveChatHistory(); // Save history after removing the message
-        }
-      } finally {
-        sendBtn.disabled = false;
-        messageInput.disabled = false;
-        messageInput.focus();
-      }
     }
 
-    // Event listeners
-    // Nasłuchiwacze zdarzeń
-    sendBtn.addEventListener('click', () => sendMessage(messageInput.value));
-    messageInput.addEventListener('keyup', (e) => {
-      if (e.key === 'Enter') {
-        sendMessage(messageInput.value);
+
+    async function handleUserInput(userInput) {
+        const trimmedInput = userInput.trim();
+        if (!trimmedInput) return;
+
+        messageInput.value = '';
+
+        if (trimmedInput.toLowerCase().startsWith('/obraz ')) {
+            const prompt = trimmedInput.substring(7).trim();
+            const langData = translations[currentLanguage] || translations['en'];
+            if (prompt) {
+                generateImage(prompt);
+            } else {
+
+                const errorMsg = langData.inputPlaceholder;
+                appendMessage(errorMsg, 'bot');
+                 chatHistory.push({ role: 'assistant', content: errorMsg });
+                saveChatHistory();
+            }
+        } else {
+            appendMessage(trimmedInput, 'user');
+            chatHistory.push({ role: 'user', content: trimmedInput });
+            saveChatHistory();
+
+            sendBtn.disabled = true;
+            messageInput.disabled = true;
+            appendLoadingIndicator('loadingText');
+
+            const langData = translations[currentLanguage] || translations['en'];
+
+            try {
+                const apiEndpoint = 'https://openrouter.ai/api/v1/chat/completions';
+                const modelToUse = 'meta-llama/llama-4-maverick:free';
+
+                const messagesForApi = [
+                    { role: "system", content: langData.systemMessage },
+                    ...chatHistory
+                        .filter(msg => msg.type !== 'image')
+                        .map(msg => ({
+                            role: msg.role,
+                            content: msg.content
+                        }))
+                ];
+
+                const fetchOptionsChat = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+                        'X-Title': 'jurek36AI Chatbot',
+                        'HTTP-Referer': location.href,
+                    },
+                    body: JSON.stringify({
+                        model: modelToUse,
+                        messages: messagesForApi,
+                    })
+                };
+                console.log('Chat API Request Options:', JSON.stringify(fetchOptionsChat, null, 2));
+
+                const res = await fetch(apiEndpoint, fetchOptionsChat);
+
+                removeLoadingIndicator();
+                const clonedChatResponse = res.clone();
+
+                if (!res.ok) {
+                     let errorData;
+                    const contentType = res.headers.get('content-type');
+
+                    if (res.status === 405) {
+                        errorData = { error: { message: langData.errorMethodNotAllowed }};
+                         const errorText = await clonedChatResponse.text();
+                        console.error('Chat API Error 405: Response Text:', errorText);
+                    } else if (contentType && contentType.includes('application/json')) {
+                         try {
+                            errorData = await res.json();
+                        } catch (jsonError) {
+                            console.error('Chat API Error: Failed to parse JSON error response:', jsonError);
+                            const errorText = await clonedChatResponse.text();
+                            console.error('Chat API Error: Non-JSON response text:', errorText);
+                             errorData = { error: { message: langData.errorParsingResponse + ` (Status: ${res.status})` } };
+                        }
+                    } else {
+                        const errorText = await res.text();
+                        console.error('Chat API Error: Non-JSON response:', errorText);
+                        errorData = { error: { message: `Serwer zwrócił nieoczekiwaną odpowiedź (Status: ${res.status}). Zobacz konsolę.` } };
+                    }
+
+                    console.error('Chat API Error Data (parsed or constructed):', errorData);
+                    let displayErrorMessage = langData.errorApi;
+                    if (res.status === 400) displayErrorMessage = langData.errorApiRequest;
+                    else if (res.status === 401) displayErrorMessage = langData.errorApiAuth;
+                     else if (res.status === 405) displayErrorMessage = errorData.error.message;
+                    else if (res.status === 429) displayErrorMessage = langData.errorApiQuota;
+                    else if (res.status >= 500) displayErrorMessage = langData.errorApiServer(res.status);
+                     else if (errorData.error && errorData.error.message && res.status !== 405) displayErrorMessage = `${langData.errorApi}: ${errorData.error.message} (Status: ${res.status})`;
+                    else if (typeof errorData.detail === 'string') displayErrorMessage += `: ${errorData.detail}`;
+                    else if (res.status !== 405) displayErrorMessage = `${langData.errorApi}: ${langData.errorGeneric} (Status: ${res.status})`;
+
+
+                    appendMessage(`Błąd: ${displayErrorMessage}`, 'bot');
+                    chatHistory.push({ role: 'assistant', content: `Błąd: ${displayErrorMessage}` });
+                    saveChatHistory();
+                    return;
+                }
+
+                let data;
+                try {
+                     data = await res.json();
+                } catch (jsonParseError) {
+                    console.error('Chat API: Error parsing successful response as JSON:', jsonParseError);
+                     const responseText = await clonedChatResponse.text();
+                    console.error('Chat API: Successful response text that failed to parse:', responseText);
+                     appendMessage(`Błąd: ${langData.errorParsingResponse}`, 'bot');
+                     chatHistory.push({ role: 'assistant', content: `Błąd: ${langData.errorParsingResponse}` });
+                    saveChatHistory();
+                    return;
+                }
+
+
+                const reply = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+
+                if (reply) {
+                    appendMessage(reply, 'bot');
+                     chatHistory.push({ role: 'assistant', content: reply });
+                } else {
+                    console.warn("API nie zwróciło treści odpowiedzi (Chat):", data);
+                    appendMessage(langData.errorNoReply, 'bot');
+                     chatHistory.push({ role: 'assistant', content: langData.errorNoReply });
+                }
+                saveChatHistory();
+
+            } catch (err) {
+                removeLoadingIndicator();
+                console.error('Błąd komunikacji z API Chatu (zewnętrzny catch block):', err);
+                const errorMessage = err.message || langData.errorGeneric;
+                appendMessage(`Błąd: ${errorMessage}`, 'bot');
+                 chatHistory.push({ role: 'assistant', content: `Błąd: ${errorMessage}` });
+                saveChatHistory();
+            } finally {
+                sendBtn.disabled = false;
+                messageInput.disabled = false;
+                messageInput.focus();
+            }
+        }
+    }
+
+
+    sendBtn.addEventListener('click', () => handleUserInput(messageInput.value));
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleUserInput(messageInput.value);
       }
     });
 
-    // Save chat history before the window is unloaded
-    // Zapisz historię czatu przed zamknięciem okna
     window.addEventListener('beforeunload', saveChatHistory);
 
+    window.onload = () => {
+        // Inicjalizacja języka i ładowanie historii
+        detectAndSetLanguage();
+        messageInput.focus();
 
-    // Set focus on the input field after page load
-    // Ustaw fokus na polu wprowadzania po załadowaniu strony
-    messageInput.focus();
+        // === LOGIKA WYSYŁANIA NA WEBHOOKA PRZY ŁADOWANIU STRONY ===
+        const langData = translations[currentLanguage] || translations['en'];
 
-    // Detect and set language after page load
-    // Wykryj i ustaw język po załadowaniu strony
-    window.onload = detectAndSetLanguage; // detectAndSetLanguage now calls loadChatHistory
+        // 1. Zwiększ lokalny licznik wejść
+        const currentLocalVisits = incrementLocalVisitsCount();
+
+        // 2. Przygotuj wiadomość
+        const webhookMessage = langData.webhookVisitMessage(currentLocalVisits);
+
+        // 3. Wyślij wiadomość na webhooka
+        sendWebhookMessage(webhookMessage);
+        // === KONIEC LOGIKI WEBHOOKA ===
+    };
   </script>
 </body>
 </html>
