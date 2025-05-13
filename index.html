@@ -3,10 +3,270 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>jurek36AI Chatbot</title>
+  <title>jurek36AI Chatbot (DeepHermes 3 Mistral 24B Preview)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js"></script>
+  <style>
+    /* Custom scrollbar for better appearance */
+    /* Niestandardowy pasek przewijania dla lepszego wyglądu */
+    #chat::-webkit-scrollbar {
+      width: 8px;
+    }
+    #chat::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.1); /* Slightly transparent track */
+      border-radius: 10px;
+    }
+    #chat::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.3); /* Slightly transparent thumb */
+      border-radius: 10px;
+    }
+    #chat::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.5); /* More visible on hover */
+    }
+
+    /* Animated Gradient Background */
+    /* Animowane tło gradientowe */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif; /* Ensure a fallback font */
+      background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+      background-size: 400% 400%;
+      animation: gradientAnimation 15s ease infinite; /* Slow, continuous animation */
+      color: #333; /* Default text color */
+    }
+
+    @keyframes gradientAnimation {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    /* Center and constrain the chat container */
+    /* Wyśrodkowanie i ograniczenie kontenera czatu */
+    .chat-container-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh; /* Full viewport height */
+        padding: 1rem; /* p-4 */
+        width: 100%; /* Ensure it takes full width for centering */
+    }
+
+    .chat-container {
+        width: 100%;
+        max-width: 500px; /* max-w-lg */
+        background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* shadow-xl */
+        border-radius: 1rem; /* rounded-2xl */
+        display: flex;
+        flex-direction: column;
+        overflow: hidden; /* Hides container scrollbar */
+        height: 90vh; /* h-[90vh] */
+        max-height: 700px; /* max-h-[700px] */
+    }
+
+    /* Header styling */
+    /* Styl nagłówka */
+    .chat-header {
+      background: rgba(59, 130, 246, 0.8); /* Tailwind blue-500 with transparency */
+      color: white;
+      padding: 1.5rem; /* p-6 */
+      font-size: 1.5rem; /* text-2xl */
+      font-weight: bold;
+      text-align: center;
+      border-top-left-radius: 1rem; /* Match container border */
+      border-top-right-radius: 1.rem; /* Match container border */
+      position: relative; /* Needed for button positioning */
+    }
+
+    /* Main chat area styling */
+    /* Styl głównego obszaru czatu */
+    .chat-main {
+        flex: 1;
+        padding: 1rem; /* p-4 */
+        overflow-y: auto; /* THIS ENABLES VERTICAL SCROLLING */
+        space-y: 1rem; /* space-y-4 */
+        background-color: rgba(249, 250, 251, 0.7); /* Tailwind gray-50 with transparency */
+    }
+
+    /* Footer styling */
+    /* Styl stopki */
+    .chat-footer {
+        padding: 1rem; /* p-4 */
+        background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white */
+        border-top: 1px solid #e5e7eb; /* border-t border-gray-200 */
+        display: flex;
+    }
+
+    /* Input row styling */
+    /* Styl wiersza wprowadzania */
+    .input-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem; /* Space between input and send button */
+    }
+
+    /* Input styling */
+    /* Styl pola wprowadzania */
+    .chat-input {
+        flex: 1;
+        padding: 0.5rem 1rem; /* px-4 py-2 */
+        border: 1px solid #d1d5db; /* border border-gray-300 */
+        border-radius: 0.5rem 0 0 0.5rem; /* Rounded left */
+        outline: none;
+        transition: border-color 0.2s ease-in-out, ring-color 0.2s ease-in-out;
+    }
+     /* Restore rounded corner on the right for input */
+     .input-row .chat-input {
+        border-top-right-radius: 0.5rem; /* Restore rounded corner */
+        border-bottom-right-radius: 0.5rem; /* Restore rounded corner */
+    }
+
+
+    .chat-input:focus {
+        border-color: #60a5fa; /* focus:border-blue-500 */
+        ring: 2px; /* focus:ring-2 */
+        ring-color: #93c5fd; /* focus:ring-blue-300 */
+    }
+    .chat-input:disabled {
+        background-color: #f3f4f6; /* disabled:bg-gray-100 */
+        cursor: not-allowed;
+    }
+
+    /* Send button styling */
+    /* Styl przycisku wyślij */
+    .chat-send-button {
+        padding: 0.5rem 1rem; /* px-4 py-2 */
+        background-color: #3b82f6; /* bg-blue-500 */
+        color: white;
+        border-radius: 0.5rem; /* Fully rounded */
+        transition: background-color 0.2s ease-in-out;
+        border: none; /* Remove default button border */
+        cursor: pointer;
+    }
+     /* Remove rounded corner on the left for button next to input */
+    .input-row .chat-send-button {
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+
+    .chat-send-button:hover {
+        background-color: #2563eb; /* hover:bg-blue-600 */
+    }
+    .chat-send-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Message bubble styling */
+    /* Styl dymków wiadomości */
+    .message-bubble {
+      display: inline-block; /* Makes the bubble width fit its content */
+      /* Sprawia, że szerokość dymka dopasowuje się do jego zawartości */
+      padding: 0.5rem 1rem; /* px-4 py-2 */
+      border-radius: 0.5rem; /* General rounded corners */
+      max-width: 80%; /* Prevents the bubble from being too wide */
+      /* Zapobiega zbyt dużej szerokości dymka */
+      word-wrap: break-word; /* Prevents long words from overflowing */
+      /* Zapobiega przepełnieniu przez długie słowa */
+      white-space: pre-wrap; /* Respect newlines in plain text messages */
+      /* Zachowuje nowe wiersze w zwykłym tekście */
+    }
+
+    .message-bubble.user {
+      background-color: rgba(59, 130, 246, 0.9); /* blue-500 with transparency */
+      color: white;
+      border-top-right-radius: 0; /* Pointed corner */
+    }
+
+    .message-bubble.bot {
+      background-color: rgba(229, 231, 235, 0.9); /* gray-200 with transparency */
+      color: #1f2937; /* gray-800 */
+      border-top-left-radius: 0; /* Pointed corner */
+    }
+
+     /* Style for images within message bubbles */
+    /* Style dla obrazów wewnątrz dymków wiadomości */
+    .message-bubble img {
+        max-width: 100%; /* Ensure images don't overflow the bubble */
+        /* Upewnij się, że obrazy nie wychodzą poza dymek */
+        height: auto;
+        border-radius: 0.5rem; /* Rounded corners for images */
+        /* Zaokrąglone rogi dla obrazów */
+        margin-top: 0.5rem; /* Space above the image */
+        /* Odstęp nad obrazem */
+    }
+
+
+    /* Style for blocks of code generated by marked.js */
+    /* Styl dla bloków kodu generowanych przez marked.js */
+    .message-bubble pre {
+      background-color: rgba(203, 213, 225, 0.8); /* Tailwind gray-300 with transparency */
+      padding: 0.75rem; /* p-3 */
+      border-radius: 0.5rem; /* rounded-lg */
+      overflow-x: auto; /* Enables horizontal scrolling for long lines */
+      position: relative; /* Needed for absolute positioning of the copy button */
+      margin-top: 0.5rem; /* Some space above the code block */
+      margin-bottom: 0.5rem; /* Some space below the code block */
+      line-height: 1.4; /* Improve readability of code */
+      color: #1f2937; /* Darker text for readability */
+    }
+
+    .message-bubble pre code {
+      font-family: 'Fira Code', 'Cascadia Code', 'Source Code Pro', monospace; /* Prefer monospaced fonts */
+      font-size: 0.9rem;
+      display: block; /* Ensures code takes full width of pre block */
+    }
+
+    /* Basic Markdown styling for elements generated by marked.js */
+    /* Podstawowy styl Markdown dla elementów generowanych przez marked.js */
+    /* Adjust as needed to match your design system */
+    .message-bubble strong {
+      font-weight: bold;
+    }
+    .message-bubble em {
+      font-style: italic;
+    }
+    .message-bubble a {
+      color: #3182ce; /* Blue link */
+      text-decoration: underline;
+    }
+    .message-bubble ul, .message-bubble ol {
+      list-style-position: inside;
+      padding-left: 1.25rem; /* pl-5 */
+      margin-bottom: 0.5rem;
+    }
+    .message-bubble li {
+      margin-bottom: 0.25rem;
+    }
+    .message-bubble h1, .message-bubble h2, .message-bubble h3, .message-bubble h4, .message-bubble h5, .message-bubble h6 {
+      font-weight: bold;
+      margin-top: 1rem;
+      margin-bottom: 0.5rem;
+      line-height: 1.2;
+      color: #1f2937; /* Dark color for headings */
+    }
+    .message-bubble h1 { font-size: 1.5rem; } /* text-2xl */
+    .message-bubble h2 { font-size: 1.25rem; } /* text-xl */
+    
+```html
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>jurek36AI Chatbot (DeepHermes 3 Mistral 24B Preview)</title>
+  <script src="[https://cdn.tailwindcss.com](https://cdn.tailwindcss.com)"></script>
+  <script src="[https://cdn.jsdelivr.net/npm/marked/marked.min.js](https://cdn.jsdelivr.net/npm/marked/marked.min.js)"></script>
+  <script src="[https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js](https://cdn.jsdelivr.net/npm/dompurify@3.0.6/dist/purify.min.js)"></script>
   <style>
     /* Custom scrollbar for better appearance */
     /* Niestandardowy pasek przewijania dla lepszego wyglądu */
@@ -305,17 +565,19 @@
 
   <script>
     // !!! === BARDZO WAŻNE OSTRZEŻENIE BEZPIECZEŃSTWA === !!!
-    // TEN KOD FRONTENDOWY NIE ZAWIERA KLUCZA API.
-    // KOMUNIKUJE SIĘ Z BACKENDEM, KTÓRY BEZPIECZNIE PRZECHOWUJE KLUCZ API.
-    // Zapewnia to bezpieczeństwo klucza API.
-
-    console.log("Script loaded."); // Log when the script starts
+    // PONIŻEJ MUSISZ WPROWADZIĆ SWÓJ KLUCZ API OPENROUTER.
+    // UMIESZCZANIE KLUCZA API BEZPOŚREDNIO W KODZIE KLIENTA (FRONTENDU)
+    // JEST BARDZO NIEBEZPIECZNE! KAZDY, KTO OTWORZY KONSOLĘ PRZEGLĄDARKĘ,
+    // BĘDZIE MÓGŁ ZOBACZYĆ I UKRAŚĆ SWÓJ KLUCZ.
+    // ZALECAM UŻYCIE TEGO ROZWIĄZANIA TYLKO DO TESTÓW/ROZWOJU LOKALNEGO.
+    // DLA APLIKACJI PRODUKCYJNYCH ZAWSZE UŻYWAJ BEZPIECZNEGO BACKENDU,
+    // KTÓRY BĘDZIE PRZECHOWYWAŁ KLUCZ API I POŚREDNICZYŁ W KOMUNIKACJI.
+    // Zarejestruj się na OpenRouter.ai, aby uzyskać darmowy klucz API.
+    const OPENROUTER_API_KEY = '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'; // <--- TUTAJ WPROWADŹ SWÓJ KLUCZ API OPENROUTER
 
     const chat = document.getElementById('chat');
     const messageInput = document.getElementById('message');
     const sendBtn = document.getElementById('send');
-
-    console.log("Elements retrieved:", { chat, messageInput, sendBtn }); // Log retrieved elements
 
     let loadingMessageElement = null; // Reference to the loading indicator element
     // Referencja do elementu wskaźnika ładowania
@@ -394,7 +656,6 @@
         // Save the chatHistory array directly
         // Zapisz bezpośrednio tablicę chatHistory
         localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(chatHistory));
-        console.log("Chat history saved."); // Log saving history
     }
 
     // Function to load chat history from localStorage
@@ -404,7 +665,6 @@
         if (savedHistory) {
             try {
                 const messages = JSON.parse(savedHistory);
-                console.log("Loaded chat history:", messages); // Log loaded history
                 // Clear current chat display
                 // Wyczyść obecny widok czatu
                 chat.innerHTML = '';
@@ -421,7 +681,7 @@
                     // Check if the message content contains the simulated image placeholder
                     // Sprawdź, czy treść wiadomości zawiera placeholder symulowanego obrazu
                     const imagePlaceholderMatch = msg.content.match(/\/);
-                    if (imagePlaceholderMatch && msg.sender === 'assistant') { // Only check bot messages for image placeholder
+                    if (imagePlaceholderMatch && msg.sender === 'bot') {
                         const description = imagePlaceholderMatch[1].replace('Symulacja obrazu dla: ', '').replace('Image simulation for: ', ''); // Extract description
                          // Wypakuj opis
                         const imageUrl = `https://placehold.co/300x200?text=${encodeURIComponent(description)}`;
@@ -450,8 +710,6 @@
                 localStorage.removeItem(CHAT_STORAGE_KEY);
                 chatHistory = []; // Ensure history array is empty
             }
-        } else {
-            console.log("No chat history found in localStorage."); // Log if no history found
         }
     }
 
@@ -467,15 +725,13 @@
       // Zaktualizuj wiadomość systemową w tłumaczeniach na podstawie obecnego języka
       translations['pl'].systemMessage = 'Jesteś pomocnym asystentem, który mówi po polsku. Gdy odpowiadasz, możesz używać formatowania Markdown takiego jak **pogrubienie**, *kursywa*, `kod inline` lub bloki kodu:\n```javascript\nconsole.log("Witaj!");\n```\nMożesz poprosić o wygenerowanie obrazu, używając komendy "/obraz [opis obrazu]". Pamiętaj, że to tylko symulacja generowania obrazu.';
       translations['en'].systemMessage = 'You are a helpful assistant who speaks English. When responding, you can use Markdown formatting like **bold**, *italics*, `inline code` or code blocks:\n```javascript\nconsole.log("Hello!");\n```\nYou can ask to generate an image using the command "/image [image description]". Note that this is just a simulated image generation.';
-      console.log("Language applied:", currentLanguage); // Log language application
     }
 
     // Function to detect and set language based on user's IP (approximate)
     // Funkcja do wykrywania i ustawiania języka na podstawie IP użytkownika (przybliżone)
     async function detectAndSetLanguage() {
       try {
-        console.log("Attempting to detect language..."); // Log detection attempt
-        const response = await fetch('http://ip-api.com/json/?fields=countryCode');
+        const response = await fetch('[http://ip-api.com/json/?fields=countryCode](http://ip-api.com/json/?fields=countryCode)');
         const data = await response.json();
 
         if (data.status === 'success' && data.countryCode) {
@@ -484,14 +740,11 @@
           } else {
             currentLanguage = 'en';
           }
-           console.log("Language detected:", currentLanguage); // Log detected language
         } else {
           console.warn('Could not detect language from IP. Status:', data.status, data.message);
-           console.log("Defaulting language to:", currentLanguage); // Log default language
         }
       } catch (error) {
         console.warn('Error detecting language from IP, defaulting to', currentLanguage, '. Error:', error);
-         console.log("Defaulting language to:", currentLanguage); // Log default language
       } finally {
         applyLanguageToUI();
         loadChatHistory(); // Load history after setting language and UI
@@ -574,7 +827,7 @@
           chatHistory.push({ role: sender === 'user' ? 'user' : 'assistant', content: text });
           saveChatHistory(); // Save history after adding a new message
       }
-       console.log("Message appended:", { text, sender, isNewMessage }); // Log message append
+
       return bubble;
     }
 
@@ -596,7 +849,6 @@
       chat.appendChild(wrapper);
       chat.scrollTop = chat.scrollHeight;
       loadingMessageElement = wrapper;
-       console.log("Loading indicator appended."); // Log loading indicator
     }
 
     // Function to remove the loading indicator
@@ -605,21 +857,15 @@
       if (loadingMessageElement && loadingMessageElement.parentNode) {
         loadingMessageElement.parentNode.removeChild(loadingMessageElement);
         loadingMessageElement = null;
-        console.log("Loading indicator removed."); // Log removal
       }
     }
 
     // Function to handle sending messages to the API or simulating image generation
     // Funkcja do obsługi wysyłania wiadomości do API lub symulowania generowania obrazu
     async function sendMessage(message) {
-      console.log("sendMessage called with message:", message); // Log function call
-
       // Don't send if message is empty
       // Nie wysyłaj, jeśli wiadomość jest pusta
-      if (!message.trim()) {
-          console.log("Message is empty, returning."); // Log empty message
-          return;
-      }
+      if (!message.trim()) return;
 
       const langData = translations[currentLanguage] || translations['en'];
       const imageCommand = currentLanguage === 'pl' ? '/obraz ' : '/image ';
@@ -627,10 +873,8 @@
       // Check if the message is an image generation command
       // Sprawdź, czy wiadomość jest komendą generowania obrazu
       if (message.toLowerCase().startsWith(imageCommand)) {
-          console.log("Image command detected."); // Log image command
           const description = message.substring(imageCommand.length).trim();
           if (description) {
-              console.log("Image description:", description); // Log description
               // Append user message (the command)
               // Dodaj wiadomość użytkownika (komendę)
               appendMessage(message, 'user');
@@ -638,30 +882,31 @@
               // Simulate image generation
               // Symuluj generowanie obrazu
               const imageUrl = `https://placehold.co/300x200?text=${encodeURIComponent(description)}`;
-              const simulationMessageText = langData.imageSimulationMessage(description); // Get the original text message
+              const simulationMessage = langData.imageSimulationMessage(description);
 
               // Append the simulated image message from the bot
               // Dodaj wiadomość z symulowanym obrazem od bota
-              // We manually create the HTML for the image within the message for display
-              // Ręcznie tworzymy HTML dla obrazu wewnątrz wiadomości do wyświetlenia
-              const botReplyDisplayContent = `${simulationMessageText.split('[Image of')[0].trim()} <br><img src="${imageUrl}" alt="Simulated image for: ${description}">`;
+              // We manually create the HTML for the image within the message
+              // Ręcznie tworzymy HTML dla obrazu wewnątrz wiadomości
+              const botReplyContent = `${simulationMessage.split('[Image of')[0].trim()} <br><img src="${imageUrl}" alt="Simulated image for: ${description}">`;
 
-              // Append the bot's reply (including the image HTML for display)
-              // Dodaj odpowiedź bota (włączając HTML obrazu do wyświetlenia)
-              // Pass the *original text* to appendMessage so it gets added to history correctly
-              // Przekaż *oryginalny tekst* do appendMessage, aby został poprawnie dodany do historii
-              appendMessage(simulationMessageText, 'bot'); // This call handles adding to history and saving
-
+              // Append the bot's reply (including the image HTML) and save to history
+              // Dodaj odpowiedź bota (włączając HTML obrazu) i zapisz do historii
+              // Note: We save the *original* simulation message text to history, not the HTML
+              // Uwaga: Zapisujemy *oryginalny* tekst wiadomości symulacyjnej do historii, nie HTML
+              appendMessage(botReplyContent, 'bot'); // Display HTML
+              // Aby zapisać do historii, dodajemy oryginalny tekst
+              chatHistory[chatHistory.length - 1].content = simulationMessage; // Update the last message in history to the original text
 
               // Clear input
               // Wyczyść pole wprowadzania
               messageInput.value = '';
               messageInput.focus();
-              console.log("Simulated image generated and appended."); // Log simulation
+              saveChatHistory(); // Save history after adding both messages
+
           } else {
               // If command is used without description
               // Jeśli komenda użyta bez opisu
-              console.log("Image command without description."); // Log missing description
               appendMessage(message, 'user');
               appendMessage("Proszę podać opis obrazu po komendzie /obraz.", 'bot'); // Customizable error message
               messageInput.value = '';
@@ -673,7 +918,6 @@
 
       // If not an image command, proceed with text generation via API
       // Jeśli nie jest komendą obrazu, kontynuuj generowanie tekstu przez API
-      console.log("Text message, calling backend API."); // Log API call intention
       // Append user message to the chat display and history
       // Dodaj wiadomość użytkownika do widoku czatu i historii
       appendMessage(message, 'user'); // appendMessage now saves history
@@ -687,42 +931,49 @@
 
       appendLoadingIndicator();
 
-      // Endpoint Twojego backendu do obsługi czatu
-      // Your backend endpoint for chat handling
-      const backendEndpoint = '/chat'; // Użyj ścieżki względnej, jeśli frontend i backend są na tej samej domenie/porcie lub skonfiguruj pełny URL po wdrożeniu
-      console.log("Sending request to backend:", backendEndpoint); // Log backend endpoint
-
       try {
-        // Prepare messages array for the backend request, including history
-        // Przygotuj tablicę wiadomości dla żądania backendu, włączając historię
-        // The backend expects an array of message objects with role and content
-        // Backend oczekuje tablicy obiektów wiadomości z rolą i treścią
-        const messagesForBackend = chatHistory.map(msg => ({
+        // API endpoint for OpenRouter (compatible with OpenAI API format)
+        // Punkt końcowy API dla OpenRouter (kompatybilny z formatem API OpenAI)
+        const apiEndpoint = '[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)';
+        // DeepHermes 3 Mistral 24B Preview model name on OpenRouter
+        // Nazwa modelu DeepHermes 3 Mistral 24B Preview na OpenRouter
+        const modelToUse = 'nousresearch/deephermes-3-mistral-24b-preview:free'; // Using the DeepHermes 3 model on OpenRouter
+
+        // Prepare messages array for the API request, including history
+        // Przygotuj tablicę wiadomości dla żądania API, włączając historię
+        // The API expects an array of message objects with role and content
+        // API oczekuje tablicy obiektów wiadomości z rolą i treścią
+        const messagesForApi = chatHistory.map(msg => ({
             role: msg.role,
             content: msg.content
         }));
-        console.log("Messages sent to backend:", messagesForBackend); // Log messages sent
 
-        const res = await fetch(backendEndpoint, {
+        const res = await fetch(apiEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            // Brak nagłówka Authorization z kluczem API OpenRouter tutaj!
-            // Klucz jest dodawany przez backend.
+            // Authorization header with OpenRouter API key
+            // Nagłówek autoryzacji z kluczem API OpenRouter
+            'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+            // Optional: Identify your app
+            // Opcjonalnie: Zidentyfikuj swoją aplikację
+            'X-Title': 'jurek36AI Chatbot'
           },
           body: JSON.stringify({
-            // Możesz wysłać nazwę modelu do backendu, jeśli backend ma obsługiwać różne modele
-            // You can send the model name to the backend if the backend should handle different models
-            model: 'nousresearch/deephermes-3-mistral-24b-preview:free', // Model name for the backend
-            messages: messagesForBackend // Send history to the backend
+            model: modelToUse, // Specify the model
+            // Określ model
+            messages: messagesForApi, // Send the chat history
+            // Wyślij historię czatu
+            // Optional parameters (adjust as needed)
+            // Parametry opcjonalne (dostosuj według potrzeb)
+            // temperature: 0.7,
+            // max_tokens: 150,
+            // stream: false // Set to true for streaming responses (requires different handling)
           })
         });
 
-        console.log("Backend response status:", res.status); // Log backend status
-
         if (!res.ok) {
           const errorData = await res.json();
-          console.error("Backend returned error:", errorData); // Log backend error data
           let displayErrorMessage = langData.errorApi;
 
           // More detailed error messages based on status code
@@ -743,27 +994,26 @@
         }
 
         const data = await res.json();
-        console.log("Backend response data:", data); // Log backend response data
-        // Oczekujemy odpowiedzi w polu 'reply' z backendu
-        // Expecting the reply in the 'reply' field from the backend
-        const reply = data.reply;
+        // OpenRouter/OpenAI compatible API response structure
+        // Struktura odpowiedzi API kompatybilna z OpenRouter/OpenAI
+        const reply = data.choices && data.choices[0] &&
+                      data.choices[0].message && data.choices[0].message.content;
 
 
         if (!reply) {
-            console.warn("Backend returned no text reply:", data);
+            console.warn("API returned content without a text part:", data);
             // Display a generic message if no text reply
             // Wyświetl ogólny komunikat, jeśli brak odpowiedzi tekstowej
             appendMessage(langData.errorNoReply, 'bot');
         } else {
              removeLoadingIndicator();
-             appendMessage(reply, 'bot'); // appendMessage adds to history and saves
-             console.log("Bot reply appended."); // Log bot reply
+             appendMessage(reply, 'bot'); // appendMessage now saves history
         }
 
 
       } catch (err) {
         removeLoadingIndicator();
-        console.error('Wystąpił błąd komunikacji z backendem:', err);
+        console.error('Wystąpił błąd komunikacji z API:', err);
         // Display the specific error message in the chat
         // Wyświetl konkretny komunikat o błędzie w czacie
         appendMessage(`Błąd: ${err.message || langData.errorGeneric}`, 'bot');
@@ -772,48 +1022,35 @@
         if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
             chatHistory.pop();
             saveChatHistory(); // Save history after removing the message
-             console.log("Removed last user message from history due to error."); // Log history modification
         }
       } finally {
-         // ... (przywracanie przycisków, fokus) ...
-         sendBtn.disabled = false;
-         messageInput.disabled = false;
-         messageInput.focus();
-         console.log("sendMessage finished."); // Log function end
+        sendBtn.disabled = false;
+        messageInput.disabled = false;
+        messageInput.focus();
       }
     }
 
     // Event listeners
     // Nasłuchiwacze zdarzeń
-     console.log("Adding event listeners."); // Log listener attachment
-    sendBtn.addEventListener('click', () => {
-        console.log("Send button clicked."); // Log button click
-        sendMessage(messageInput.value);
-    });
+    sendBtn.addEventListener('click', () => sendMessage(messageInput.value));
     messageInput.addEventListener('keyup', (e) => {
-      console.log("Key up in message input:", e.key); // Log key up
       if (e.key === 'Enter') {
-        console.log("Enter key pressed."); // Log Enter key
         sendMessage(messageInput.value);
       }
     });
-     console.log("Event listeners added."); // Log listener attachment completion
-
 
     // Save chat history before the window is unloaded
     // Zapisz historię czatu przed zamknięciem okna
     window.addEventListener('beforeunload', saveChatHistory);
-    console.log("beforeunload listener added."); // Log listener
+
 
     // Set focus on the input field after page load
     // Ustaw fokus na polu wprowadzania po załadowaniu strony
     messageInput.focus();
-    console.log("Input focused."); // Log focus
 
     // Detect and set language after page load
     // Wykryj i ustaw język po załadowaniu strony
     window.onload = detectAndSetLanguage; // detectAndSetLanguage now calls loadChatHistory
-    console.log("window.onload set to detectAndSetLanguage."); // Log onload
   </script>
 </body>
 </html>
